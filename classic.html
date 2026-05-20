@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#b44f2d" />
+  <meta name="description" content="一个交互式可视化 Demo：直观展示线性回归 y = a + bx 的梯度下降训练过程，实时观察参数更新与损失下降。" />
+  <meta name="keywords" content="梯度下降, 线性回归, 机器学习, 可视化, 教学, gradient descent, linear regression" />
+  <meta name="author" content="MSAI 300 人工智能基础" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="梯度下降拟合 y = a + bx · 交互式 Demo" />
+  <meta property="og:description" content="把'训练线性模型'这件事直接画出来：学习率、噪声、训练步数全部可调，实时看拟合直线与损失曲线的变化。" />
+  <meta property="og:locale" content="zh_CN" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="梯度下降拟合 y = a + bx · 交互式 Demo" />
+  <meta name="twitter:description" content="可视化机器学习训练过程的教学 Demo。" />
+
+  <!-- Favicon (inline SVG, no extra request) -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="favicon.svg" />
+
+  <title>梯度下降拟合 y = a + bx · 交互式 Demo</title>
+  <style>
+    :root {
+      --bg: #f5efe3;
+      --panel: rgba(255, 250, 241, 0.9);
+      --panel-strong: #fffaf1;
+      --text: #1e1b16;
+      --muted: #62594e;
+      --accent: #b44f2d;
+      --accent-soft: rgba(180, 79, 45, 0.14);
+      --accent-2: #2f6b5f;
+      --line: #d9c8b3;
+      --shadow: 0 24px 60px rgba(66, 41, 19, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.8), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(47, 107, 95, 0.15), transparent 28%),
+        linear-gradient(135deg, #f8f2e8 0%, #efe3d0 100%);
+      padding: 24px;
+    }
+
+    .page {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: grid;
+      gap: 20px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--panel);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: var(--shadow);
+      border-radius: 24px;
+    }
+
+    .hero {
+      padding: 28px;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -40px -60px auto;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(180, 79, 45, 0.25), transparent 70%);
+      pointer-events: none;
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 1.02;
+      margin-bottom: 14px;
+    }
+
+    .hero p {
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 62ch;
+    }
+
+    .formula-card {
+      align-self: stretch;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(255, 245, 236, 0.92));
+      border: 1px solid rgba(180, 79, 45, 0.14);
+      border-radius: 20px;
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .formula {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .formula small {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 340px minmax(0, 1fr);
+      gap: 20px;
+    }
+
+    .panel {
+      padding: 22px;
+    }
+
+    .controls {
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .controls h2,
+    .visuals h2 {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .group {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.54);
+      border: 1px solid rgba(217, 200, 179, 0.8);
+      border-radius: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 20px rgba(47, 34, 20, 0.14);
+    }
+
+    .primary {
+      background: var(--accent);
+      color: #fffaf6;
+    }
+
+    .secondary {
+      background: #efe2cf;
+      color: var(--text);
+    }
+
+    .ghost {
+      background: rgba(47, 107, 95, 0.12);
+      color: var(--accent-2);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stat {
+      padding: 14px;
+      border-radius: 16px;
+      background: var(--panel-strong);
+      border: 1px solid rgba(217, 200, 179, 0.7);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat span {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .visuals {
+      display: grid;
+      gap: 18px;
+    }
+
+    .canvas-wrap {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .canvas-card {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.52);
+      border: 1px solid rgba(217, 200, 179, 0.75);
+      display: grid;
+      gap: 10px;
+    }
+
+    .canvas-card h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 320px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(255, 251, 245, 0.96), rgba(246, 236, 219, 0.96));
+      border: 1px solid rgba(217, 200, 179, 0.8);
+    }
+
+    .legend {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+    }
+
+    .notes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .note {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.56);
+      border: 1px solid rgba(217, 200, 179, 0.8);
+      line-height: 1.65;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .note strong {
+      color: var(--text);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .grid,
+      .canvas-wrap,
+      .notes {
+        grid-template-columns: 1fr;
+      }
+
+      .buttons,
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 14px;
+      }
+
+      .hero,
+      .panel {
+        border-radius: 18px;
+      }
+
+      .buttons,
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      canvas {
+        height: 260px;
+      }
+    }
+
+    /* 跨版本顶栏 */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 0 4px;
+    }
+    .topbar .brand {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+    .topbar .brand strong { color: var(--accent); }
+    .topbar a.switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 12px;
+      background: rgba(180, 79, 45, 0.14);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      border: 1px solid rgba(180, 79, 45, 0.2);
+    }
+    .topbar a.switch:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(180, 79, 45, 0.18);
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- 跨版本顶栏 -->
+    <div class="topbar">
+      <div class="brand"><strong>MSAI 300</strong> · 人工智能基础 · 教学讲解版</div>
+      <a class="switch" id="switchToGame" href="index.html">🎣 切到钓鱼游戏版 →</a>
+    </div>
+
+    <section class="hero">
+      <div>
+        <span class="eyebrow">Gradient Descent Demo</span>
+        <h1>把“训练线性模型”这件事直接画出来</h1>
+        <p>
+          这个示例用一批散点来训练模型 <strong>y = a + bx</strong>。你会看到参数 a 和 b
+          从随机初值开始，通过梯度下降不断更新，拟合直线逐步贴近数据点，同时损失函数逐步下降。
+        </p>
+      </div>
+      <div class="formula-card">
+        <div class="formula">
+          <small>模型</small>
+          y = a + bx
+        </div>
+        <div class="formula">
+          <small>损失</small>
+          MSE = (1 / n) * Σ(ŷ - y)^2
+        </div>
+        <div class="formula">
+          <small>更新</small>
+          a ← a - η * ∂L/∂a<br />
+          b ← b - η * ∂L/∂b
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <aside class="panel controls">
+        <div>
+          <h2>控制面板</h2>
+          <p class="subtle">调一调学习率、噪声和训练速度，观察收敛是否稳定。</p>
+        </div>
+
+        <div class="group">
+          <div class="field">
+            <label for="learningRate">
+              <span>学习率</span>
+              <span id="learningRateValue">0.020</span>
+            </label>
+            <input id="learningRate" type="range" min="0.001" max="0.15" step="0.001" value="0.020" />
+          </div>
+          <div class="field">
+            <label for="noiseLevel">
+              <span>噪声强度</span>
+              <span id="noiseLevelValue">1.2</span>
+            </label>
+            <input id="noiseLevel" type="range" min="0" max="4" step="0.1" value="1.2" />
+          </div>
+          <div class="field">
+            <label for="stepsPerFrame">
+              <span>每帧训练步数</span>
+              <span id="stepsPerFrameValue">3</span>
+            </label>
+            <input id="stepsPerFrame" type="range" min="1" max="20" step="1" value="3" />
+          </div>
+          <div class="field">
+            <label for="pointCount">
+              <span>数据点数量</span>
+              <span id="pointCountValue">28</span>
+            </label>
+            <input id="pointCount" type="range" min="8" max="80" step="1" value="28" />
+          </div>
+        </div>
+
+        <div class="buttons">
+          <button class="primary" id="toggleTraining">开始训练</button>
+          <button class="secondary" id="stepOnce">单步训练</button>
+          <button class="ghost" id="resetModel">重置参数</button>
+          <button class="secondary" id="regenerateData">重新生成数据</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><strong>当前轮次</strong><span id="epochValue">0</span></div>
+          <div class="stat"><strong>当前损失</strong><span id="lossValue">0.0000</span></div>
+          <div class="stat"><strong>参数 a</strong><span id="aValue">0.000</span></div>
+          <div class="stat"><strong>参数 b</strong><span id="bValue">0.000</span></div>
+          <div class="stat"><strong>梯度 da</strong><span id="gradAValue">0.000</span></div>
+          <div class="stat"><strong>梯度 db</strong><span id="gradBValue">0.000</span></div>
+        </div>
+      </aside>
+
+      <div class="panel visuals">
+        <div>
+          <h2>训练过程</h2>
+          <p class="subtle">左图看拟合直线如何靠近数据，右图看损失如何下降。</p>
+        </div>
+
+        <div class="canvas-wrap">
+          <div class="canvas-card">
+            <h3>数据点与拟合直线</h3>
+            <canvas id="fitCanvas" width="640" height="360"></canvas>
+            <div class="legend">
+              <span class="legend-item"><span class="swatch" style="background:#2f6b5f"></span>真实数据点</span>
+              <span class="legend-item"><span class="swatch" style="background:#b44f2d"></span>当前拟合直线</span>
+              <span class="legend-item"><span class="swatch" style="background:#7f7468"></span>真实目标直线</span>
+            </div>
+          </div>
+
+          <div class="canvas-card">
+            <h3>损失曲线</h3>
+            <canvas id="lossCanvas" width="640" height="360"></canvas>
+            <div class="legend">
+              <span class="legend-item"><span class="swatch" style="background:#b44f2d"></span>MSE 随训练轮次变化</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="notes">
+          <div class="note">
+            <strong>1. 数据是什么</strong>
+            每个点都有输入 x 和真实输出 y。训练就是让模型预测值 ŷ 尽量接近真实值 y。
+          </div>
+          <div class="note">
+            <strong>2. 梯度是什么</strong>
+            梯度告诉你“损失增大的方向”。参数往负梯度方向走，损失通常会下降。
+          </div>
+          <div class="note">
+            <strong>3. 学习率太大怎么办</strong>
+            如果学习率太大，直线会来回震荡，损失可能不降反升。这正是训练不稳定的直观表现。
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const state = {
+      trueA: 2.5,
+      trueB: 1.35,
+      currentA: -4,
+      currentB: -1.5,
+      learningRate: 0.02,
+      noiseLevel: 1.2,
+      pointCount: 28,
+      stepsPerFrame: 3,
+      epoch: 0,
+      lastGradA: 0,
+      lastGradB: 0,
+      lastLoss: 0,
+      lossHistory: [],
+      points: [],
+      isTraining: false,
+      animationId: null,
+    };
+
+    const fitCanvas = document.getElementById("fitCanvas");
+    const lossCanvas = document.getElementById("lossCanvas");
+    const fitCtx = fitCanvas.getContext("2d");
+    const lossCtx = lossCanvas.getContext("2d");
+
+    const ui = {
+      learningRate: document.getElementById("learningRate"),
+      noiseLevel: document.getElementById("noiseLevel"),
+      stepsPerFrame: document.getElementById("stepsPerFrame"),
+      pointCount: document.getElementById("pointCount"),
+      learningRateValue: document.getElementById("learningRateValue"),
+      noiseLevelValue: document.getElementById("noiseLevelValue"),
+      stepsPerFrameValue: document.getElementById("stepsPerFrameValue"),
+      pointCountValue: document.getElementById("pointCountValue"),
+      toggleTraining: document.getElementById("toggleTraining"),
+      stepOnce: document.getElementById("stepOnce"),
+      resetModel: document.getElementById("resetModel"),
+      regenerateData: document.getElementById("regenerateData"),
+      epochValue: document.getElementById("epochValue"),
+      lossValue: document.getElementById("lossValue"),
+      aValue: document.getElementById("aValue"),
+      bValue: document.getElementById("bValue"),
+      gradAValue: document.getElementById("gradAValue"),
+      gradBValue: document.getElementById("gradBValue"),
+    };
+
+    function randomBetween(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    function generatePoints() {
+      const points = [];
+      for (let index = 0; index < state.pointCount; index += 1) {
+        const x = -10 + (20 * index) / Math.max(state.pointCount - 1, 1);
+        const noise = randomBetween(-state.noiseLevel, state.noiseLevel);
+        const y = state.trueA + state.trueB * x + noise;
+        points.push({ x, y });
+      }
+      state.points = points;
+    }
+
+    function predict(x, a = state.currentA, b = state.currentB) {
+      return a + b * x;
+    }
+
+    function computeLossAndGradients() {
+      let sumLoss = 0;
+      let gradA = 0;
+      let gradB = 0;
+      const sampleCount = state.points.length;
+
+      for (const point of state.points) {
+        const prediction = predict(point.x);
+        const error = prediction - point.y;
+        sumLoss += error * error;
+        gradA += (2 / sampleCount) * error;
+        gradB += (2 / sampleCount) * error * point.x;
+      }
+
+      return {
+        loss: sumLoss / sampleCount,
+        gradA,
+        gradB,
+      };
+    }
+
+    function trainStep() {
+      const { gradA, gradB } = computeLossAndGradients();
+      state.currentA -= state.learningRate * gradA;
+      state.currentB -= state.learningRate * gradB;
+      state.epoch += 1;
+      state.lastGradA = gradA;
+      state.lastGradB = gradB;
+      const updatedSnapshot = computeLossAndGradients();
+      state.lastLoss = updatedSnapshot.loss;
+      state.lossHistory.push(updatedSnapshot.loss);
+      if (state.lossHistory.length > 240) {
+        state.lossHistory.shift();
+      }
+    }
+
+    function resetModel() {
+      state.currentA = randomBetween(-6, 6);
+      state.currentB = randomBetween(-3, 3);
+      state.epoch = 0;
+      state.lastGradA = 0;
+      state.lastGradB = 0;
+      state.lossHistory = [];
+      const snapshot = computeLossAndGradients();
+      state.lastLoss = snapshot.loss;
+      state.lastGradA = snapshot.gradA;
+      state.lastGradB = snapshot.gradB;
+      updateStats();
+      drawAll();
+    }
+
+    function regenerateData() {
+      generatePoints();
+      resetModel();
+    }
+
+    function updateStats() {
+      ui.epochValue.textContent = String(state.epoch);
+      ui.lossValue.textContent = state.lastLoss.toFixed(4);
+      ui.aValue.textContent = state.currentA.toFixed(3);
+      ui.bValue.textContent = state.currentB.toFixed(3);
+      ui.gradAValue.textContent = state.lastGradA.toFixed(3);
+      ui.gradBValue.textContent = state.lastGradB.toFixed(3);
+    }
+
+    function project(value, domainMin, domainMax, rangeMin, rangeMax) {
+      const ratio = (value - domainMin) / (domainMax - domainMin || 1);
+      return rangeMin + ratio * (rangeMax - rangeMin);
+    }
+
+    function drawAxes(ctx, width, height, xMin, xMax, yMin, yMax) {
+      ctx.strokeStyle = "rgba(127, 116, 104, 0.35)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+
+      for (let step = 0; step <= 4; step += 1) {
+        const x = 56 + ((width - 88) * step) / 4;
+        ctx.moveTo(x, 24);
+        ctx.lineTo(x, height - 38);
+      }
+
+      for (let step = 0; step <= 4; step += 1) {
+        const y = 24 + ((height - 62) * step) / 4;
+        ctx.moveTo(56, y);
+        ctx.lineTo(width - 32, y);
+      }
+
+      ctx.stroke();
+
+      ctx.fillStyle = "#62594e";
+      ctx.font = "12px Segoe UI";
+      ctx.fillText(`x: ${xMin.toFixed(0)} to ${xMax.toFixed(0)}`, 56, height - 12);
+      ctx.fillText(`y: ${yMin.toFixed(1)} to ${yMax.toFixed(1)}`, width - 150, height - 12);
+    }
+
+    function drawFitChart() {
+      const width = fitCanvas.width;
+      const height = fitCanvas.height;
+      fitCtx.clearRect(0, 0, width, height);
+
+      const xs = state.points.map((point) => point.x);
+      const ys = state.points.map((point) => point.y);
+      const candidates = ys.concat([
+        state.trueA + state.trueB * -10,
+        state.trueA + state.trueB * 10,
+        state.currentA + state.currentB * -10,
+        state.currentA + state.currentB * 10,
+      ]);
+      const xMin = Math.min(...xs) - 1;
+      const xMax = Math.max(...xs) + 1;
+      const yMin = Math.min(...candidates) - 2;
+      const yMax = Math.max(...candidates) + 2;
+
+      drawAxes(fitCtx, width, height, xMin, xMax, yMin, yMax);
+
+      const mapX = (x) => project(x, xMin, xMax, 56, width - 32);
+      const mapY = (y) => project(y, yMin, yMax, height - 38, 24);
+
+      fitCtx.strokeStyle = "rgba(127, 116, 104, 0.85)";
+      fitCtx.lineWidth = 2;
+      fitCtx.setLineDash([6, 6]);
+      fitCtx.beginPath();
+      fitCtx.moveTo(mapX(xMin), mapY(state.trueA + state.trueB * xMin));
+      fitCtx.lineTo(mapX(xMax), mapY(state.trueA + state.trueB * xMax));
+      fitCtx.stroke();
+
+      fitCtx.setLineDash([]);
+      fitCtx.strokeStyle = "#b44f2d";
+      fitCtx.lineWidth = 4;
+      fitCtx.beginPath();
+      fitCtx.moveTo(mapX(xMin), mapY(state.currentA + state.currentB * xMin));
+      fitCtx.lineTo(mapX(xMax), mapY(state.currentA + state.currentB * xMax));
+      fitCtx.stroke();
+
+      for (const point of state.points) {
+        fitCtx.beginPath();
+        fitCtx.fillStyle = "#2f6b5f";
+        fitCtx.arc(mapX(point.x), mapY(point.y), 4.5, 0, Math.PI * 2);
+        fitCtx.fill();
+      }
+    }
+
+    function drawLossChart() {
+      const width = lossCanvas.width;
+      const height = lossCanvas.height;
+      lossCtx.clearRect(0, 0, width, height);
+
+      const values = state.lossHistory.length > 0 ? state.lossHistory : [state.lastLoss || 0];
+      const xMin = 0;
+      const xMax = Math.max(values.length - 1, 1);
+      const yMin = 0;
+      const yMax = Math.max(...values, 1);
+
+      drawAxes(lossCtx, width, height, xMin, xMax, yMin, yMax);
+
+      const mapX = (x) => project(x, xMin, xMax, 56, width - 32);
+      const mapY = (y) => project(y, yMin, yMax, height - 38, 24);
+
+      lossCtx.strokeStyle = "#b44f2d";
+      lossCtx.lineWidth = 3;
+      lossCtx.beginPath();
+      values.forEach((value, index) => {
+        const x = mapX(index);
+        const y = mapY(value);
+        if (index === 0) {
+          lossCtx.moveTo(x, y);
+        } else {
+          lossCtx.lineTo(x, y);
+        }
+      });
+      lossCtx.stroke();
+
+      const lastIndex = values.length - 1;
+      lossCtx.fillStyle = "#2f6b5f";
+      lossCtx.beginPath();
+      lossCtx.arc(mapX(lastIndex), mapY(values[lastIndex]), 5, 0, Math.PI * 2);
+      lossCtx.fill();
+    }
+
+    function drawAll() {
+      drawFitChart();
+      drawLossChart();
+      updateStats();
+    }
+
+    function loop() {
+      if (!state.isTraining) {
+        return;
+      }
+
+      for (let step = 0; step < state.stepsPerFrame; step += 1) {
+        trainStep();
+      }
+      drawAll();
+      state.animationId = requestAnimationFrame(loop);
+    }
+
+    function setTraining(active) {
+      state.isTraining = active;
+      ui.toggleTraining.textContent = active ? "暂停训练" : "开始训练";
+      if (active) {
+        cancelAnimationFrame(state.animationId);
+        state.animationId = requestAnimationFrame(loop);
+      } else {
+        cancelAnimationFrame(state.animationId);
+      }
+    }
+
+    function syncSettings() {
+      state.learningRate = Number(ui.learningRate.value);
+      state.noiseLevel = Number(ui.noiseLevel.value);
+      state.stepsPerFrame = Number(ui.stepsPerFrame.value);
+      state.pointCount = Number(ui.pointCount.value);
+      ui.learningRateValue.textContent = state.learningRate.toFixed(3);
+      ui.noiseLevelValue.textContent = state.noiseLevel.toFixed(1);
+      ui.stepsPerFrameValue.textContent = String(state.stepsPerFrame);
+      ui.pointCountValue.textContent = String(state.pointCount);
+    }
+
+    ui.learningRate.addEventListener("input", () => {
+      syncSettings();
+    });
+
+    ui.noiseLevel.addEventListener("input", () => {
+      syncSettings();
+      regenerateData();
+    });
+
+    ui.stepsPerFrame.addEventListener("input", () => {
+      syncSettings();
+    });
+
+    ui.pointCount.addEventListener("input", () => {
+      syncSettings();
+      regenerateData();
+    });
+
+    ui.toggleTraining.addEventListener("click", () => {
+      setTraining(!state.isTraining);
+    });
+
+    ui.stepOnce.addEventListener("click", () => {
+      setTraining(false);
+      trainStep();
+      drawAll();
+    });
+
+    ui.resetModel.addEventListener("click", () => {
+      setTraining(false);
+      resetModel();
+    });
+
+    ui.regenerateData.addEventListener("click", () => {
+      setTraining(false);
+      regenerateData();
+    });
+
+    // ===== URL hash 跨版本同步（连接钓鱼游戏版） =====
+    function readUrlHash() {
+      const hash = (window.location.hash || '').replace(/^#/, '');
+      if (!hash) return null;
+      const params = {};
+      hash.split('&').forEach(p => {
+        const [k, v] = p.split('=');
+        if (k) params[k] = decodeURIComponent(v || '');
+      });
+      return params;
+    }
+    let _hashTimer = null;
+    function updateUrlHashThrottled() {
+      if (_hashTimer) clearTimeout(_hashTimer);
+      _hashTimer = setTimeout(() => {
+        const a = state.currentA.toFixed(3);
+        const b = state.currentB.toFixed(3);
+        const hash = `#a=${a}&b=${b}&lv=1`;
+        try {
+          history.replaceState(null, '', window.location.pathname + hash);
+        } catch (e) { /* noop */ }
+        const link = document.getElementById('switchToGame');
+        if (link) link.href = 'index.html' + hash;
+      }, 200);
+    }
+    // 包装 drawAll —— 每次绘制后同步 hash
+    const _originalDrawAll = drawAll;
+    drawAll = function () {
+      _originalDrawAll.apply(this, arguments);
+      updateUrlHashThrottled();
+    };
+
+    // 初始化：先按原逻辑生成数据，再用 URL hash 覆盖参数
+    syncSettings();
+    regenerateData();
+
+    const _params = readUrlHash();
+    if (_params) {
+      const aV = Number(_params.a), bV = Number(_params.b);
+      if (!isNaN(aV)) state.currentA = aV;
+      if (!isNaN(bV)) state.currentB = bV;
+      const snap = computeLossAndGradients();
+      state.lastLoss = snap.loss;
+      state.lastGradA = snap.gradA;
+      state.lastGradB = snap.gradB;
+      drawAll();
+    } else {
+      updateUrlHashThrottled();
+    }
+  </script>
+</body>
+</html>

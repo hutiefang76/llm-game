@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="梯度下降 Demo">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8f2e8"/>
+      <stop offset="100%" stop-color="#efe3d0"/>
+    </linearGradient>
+  </defs>
+  <!-- rounded background -->
+  <rect x="2" y="2" width="60" height="60" rx="14" ry="14" fill="url(#bg)" stroke="#d9c8b3" stroke-width="1.5"/>
+
+  <!-- axes -->
+  <line x1="12" y1="50" x2="54" y2="50" stroke="#62594e" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+  <line x1="12" y1="50" x2="12" y2="12" stroke="#62594e" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- fitting line (accent orange) -->
+  <line x1="14" y1="44" x2="52" y2="16" stroke="#b44f2d" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- scatter points (accent green) -->
+  <circle cx="18" cy="42" r="2.4" fill="#2f6b5f"/>
+  <circle cx="26" cy="36" r="2.4" fill="#2f6b5f"/>
+  <circle cx="32" cy="34" r="2.4" fill="#2f6b5f"/>
+  <circle cx="38" cy="26" r="2.4" fill="#2f6b5f"/>
+  <circle cx="46" cy="22" r="2.4" fill="#2f6b5f"/>
+</svg>
