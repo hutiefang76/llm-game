@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#b44f2d" />
-  <meta name="description" content="把机器学习全套超参数翻译成钓鱼装备——按 MSAI 300 第二讲 PPT 严格对标的可玩教学游戏。" />
+  <meta name="description" content="把机器学习全套超参数翻译成钓鱼装备 · 数据三分 · 自动超参搜索 · 一次性高考 — 严格对标 MSAI 300 第二讲 PPT。" />
   <meta name="author" content="MSAI 300 人工智能基础" />
-  <meta property="og:title" content="🎣 钓鱼塘大学 · 完整版" />
-  <meta property="og:description" content="先去渔具店选装备（超参数），再出海钓鱼（梯度下降），最后看战绩报告（Accuracy/Precision/Recall/F1）。" />
+  <meta property="og:title" content="🎣 钓鱼塘大学 v4 · 数据三分版" />
+  <meta property="og:description" content="练习池 → 模拟考池（随便看）→ 高考池（只能开一次）。还有自动超参搜索喵老板代你卷。" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <title>🎣 钓鱼塘大学 · 机器学习全装备版</title>
+  <title>🎣 钓鱼塘大学 v4 · 数据三分版</title>
   <style>
     :root {
       --bg: #f5efe3;
@@ -25,14 +25,14 @@
       --line: #d9c8b3;
       --shadow: 0 24px 60px rgba(66, 41, 19, 0.15);
       --gold: #e0a04e;
-      --test-color: #8a5cf6;
+      --val-color: #8a5cf6;
+      --test-color: #dc2f5b;
       --danger: #c63d3d;
       --success: #2a9d6a;
     }
     * { box-sizing: border-box; }
     body {
-      margin: 0;
-      min-height: 100vh;
+      margin: 0; min-height: 100vh;
       font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
       color: var(--text);
       background:
@@ -52,245 +52,148 @@
       background: rgba(47, 107, 95, 0.14); color: var(--accent-2);
       font-size: 13px; font-weight: 700; text-decoration: none;
       border: 1px solid rgba(47, 107, 95, 0.2);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
     .topbar a.switch:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(47, 107, 95, 0.18); }
 
     .hero, .panel {
-      background: var(--panel);
-      backdrop-filter: blur(10px);
+      background: var(--panel); backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.7);
-      box-shadow: var(--shadow);
-      border-radius: 24px;
+      box-shadow: var(--shadow); border-radius: 24px;
     }
-    .hero {
-      padding: 28px 32px;
-      display: grid;
-      grid-template-columns: 1.4fr 1fr;
-      gap: 24px;
-      align-items: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .hero::after {
-      content: ""; position: absolute; inset: auto -60px -60px auto;
-      width: 240px; height: 240px;
-      background: radial-gradient(circle, rgba(180, 79, 45, 0.18), transparent 70%);
-      pointer-events: none;
-    }
+    .hero { padding: 28px 32px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; align-items: center; position: relative; overflow: hidden; }
+    .hero::after { content: ""; position: absolute; inset: auto -60px -60px auto; width: 240px; height: 240px; background: radial-gradient(circle, rgba(180, 79, 45, 0.18), transparent 70%); pointer-events: none; }
     h1, h2, h3, p { margin: 0; }
     .eyebrow { color: var(--accent); font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 10px; display: inline-block; font-weight: 700; }
     .hero h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.05; margin-bottom: 12px; }
     .hero p.subtitle { color: var(--muted); line-height: 1.7; font-size: 15px; max-width: 56ch; }
     .meow-box {
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(255, 245, 236, 0.92));
-      border: 1px solid rgba(180, 79, 45, 0.18);
-      border-radius: 20px;
-      padding: 20px 22px;
-      position: relative;
-      min-height: 130px;
+      border: 1px solid rgba(180, 79, 45, 0.18); border-radius: 20px; padding: 20px 22px; position: relative; min-height: 130px;
     }
-    .meow-box .avatar {
-      position: absolute; top: -22px; left: -10px;
-      width: 64px; height: 64px;
-      background: var(--accent); border-radius: 50%;
-      display: grid; place-items: center;
-      box-shadow: 0 8px 20px rgba(180, 79, 45, 0.35);
-      font-size: 32px;
-    }
+    .meow-box .avatar { position: absolute; top: -22px; left: -10px; width: 64px; height: 64px; background: var(--accent); border-radius: 50%; display: grid; place-items: center; box-shadow: 0 8px 20px rgba(180, 79, 45, 0.35); font-size: 32px; }
     .meow-box .name { font-size: 13px; color: var(--accent); font-weight: 800; letter-spacing: 0.08em; margin-bottom: 6px; padding-left: 58px; }
     .meow-box .speech { font-size: 15px; line-height: 1.65; color: var(--text); padding-left: 4px; min-height: 48px; }
     .meow-box .hint { margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(180, 79, 45, 0.25); font-size: 12px; color: var(--muted); font-family: ui-monospace, "SF Mono", Menlo, monospace; }
 
-    /* 阶段进度条 */
-    .stage-bar {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      padding: 16px 20px;
-      align-items: center;
-    }
-    .stage-step {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 18px;
-      border-radius: 999px;
-      background: #fff;
-      border: 1px solid var(--line);
-      font-size: 13px;
-      color: var(--muted);
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.18s ease;
-    }
-    .stage-step.active {
-      background: var(--accent);
-      color: #fffaf6;
-      border-color: var(--accent);
-      box-shadow: 0 10px 22px rgba(180, 79, 45, 0.32);
-    }
-    .stage-step.done {
-      background: var(--accent-2-soft);
-      color: var(--accent-2);
-      border-color: rgba(47, 107, 95, 0.3);
-    }
+    .stage-bar { display: flex; justify-content: center; gap: 10px; padding: 16px 20px; align-items: center; }
+    .stage-step { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px; background: #fff; border: 1px solid var(--line); font-size: 13px; color: var(--muted); font-weight: 700; cursor: pointer; transition: all 0.18s ease; }
+    .stage-step.active { background: var(--accent); color: #fffaf6; border-color: var(--accent); box-shadow: 0 10px 22px rgba(180, 79, 45, 0.32); }
+    .stage-step.done { background: var(--accent-2-soft); color: var(--accent-2); border-color: rgba(47, 107, 95, 0.3); }
+    .stage-step .role { font-size: 11px; opacity: 0.85; }
     .stage-arrow { color: var(--muted); font-size: 18px; }
 
     .stage { display: grid; gap: 18px; }
     .stage.hidden { display: none; }
-
     .panel { padding: 22px 24px; }
 
-    /* ========== 阶段 1：渔具店 ========== */
     .gear-shop { display: grid; gap: 16px; }
-    .shop-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
+    .auto-search-banner {
+      padding: 18px 22px;
+      display: flex; justify-content: space-between; align-items: center; gap: 16px;
+      flex-wrap: wrap;
+      background: linear-gradient(135deg, rgba(47, 107, 95, 0.16), rgba(138, 92, 246, 0.16));
+      border: 1px dashed rgba(47, 107, 95, 0.35);
+      border-radius: 16px;
     }
-    .shop-card {
+    .auto-search-banner .title { font-size: 15px; font-weight: 800; color: var(--accent-2); }
+    .auto-search-banner .desc { font-size: 12.5px; color: var(--muted); margin-top: 2px; max-width: 60ch; }
+    .auto-search-btn {
+      padding: 12px 22px; border: 0; border-radius: 12px; background: var(--accent-2); color: #fff; font-weight: 800; font-size: 13.5px; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .auto-search-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(47, 107, 95, 0.35); }
+    .auto-search-btn:disabled { opacity: 0.55; cursor: progress; }
+
+    .search-results {
+      padding: 18px 22px;
       background: rgba(255, 255, 255, 0.6);
       border: 1px solid var(--line);
-      border-radius: 16px;
-      overflow: hidden;
+      border-radius: 14px;
+      display: none;
     }
-    .shop-card .card-head {
-      padding: 14px 18px;
-      color: #fffaf6;
-      background: linear-gradient(135deg, var(--accent), #c66541);
-      display: flex; justify-content: space-between; align-items: center;
+    .search-results.show { display: block; }
+    .search-progress { font-size: 13px; color: var(--muted); margin-bottom: 10px; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+    .search-result-row {
+      display: grid; grid-template-columns: 30px 1fr 80px 100px; gap: 12px;
+      padding: 8px 10px; border-radius: 8px; align-items: center;
+      font-size: 13px;
     }
+    .search-result-row:nth-child(even) { background: rgba(217, 200, 179, 0.2); }
+    .search-result-row .rank { font-weight: 800; color: var(--accent); font-size: 14px; }
+    .search-result-row .desc { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; color: var(--text); }
+    .search-result-row .val-loss { color: var(--val-color); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .search-result-row .adopt-btn {
+      padding: 6px 12px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .search-result-row .adopt-btn:hover { background: #c66541; }
+
+    .shop-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .shop-card { background: rgba(255, 255, 255, 0.6); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+    .shop-card .card-head { padding: 14px 18px; color: #fffaf6; background: linear-gradient(135deg, var(--accent), #c66541); display: flex; justify-content: space-between; align-items: center; }
     .shop-card.alt .card-head { background: linear-gradient(135deg, var(--accent-2), #4d8f81); }
     .shop-card.gold .card-head { background: linear-gradient(135deg, var(--gold), #c98a3a); }
-    .shop-card.purple .card-head { background: linear-gradient(135deg, var(--test-color), #6c44d3); }
+    .shop-card.purple .card-head { background: linear-gradient(135deg, var(--val-color), #6c44d3); }
     .shop-card.danger .card-head { background: linear-gradient(135deg, var(--danger), #a02d2d); }
     .shop-card .card-title { font-size: 15px; font-weight: 800; letter-spacing: 0.03em; }
     .shop-card .card-tech { font-size: 11px; font-family: ui-monospace, "SF Mono", Menlo, monospace; opacity: 0.85; }
+    .shop-card .card-role-tag {
+      font-size: 10.5px; padding: 3px 8px; border-radius: 999px;
+      background: rgba(255, 255, 255, 0.28); font-weight: 700;
+      align-self: flex-start;
+    }
     .shop-card .card-body { padding: 16px 18px; display: grid; gap: 14px; }
 
     .field-row { display: grid; gap: 6px; }
-    .field-label {
-      display: flex; justify-content: space-between; align-items: baseline;
-      font-size: 13px; font-weight: 700; color: var(--text);
-    }
-    .field-label .tech {
-      font-size: 11px; color: var(--accent-2);
-      font-family: ui-monospace, "SF Mono", Menlo, monospace; font-weight: 600;
-    }
-    .field-label .cur-val {
-      font-size: 13px; font-weight: 800; color: var(--accent);
-      font-variant-numeric: tabular-nums;
-    }
+    .field-label { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; font-weight: 700; color: var(--text); }
+    .field-label .tech { font-size: 11px; color: var(--accent-2); font-family: ui-monospace, "SF Mono", Menlo, monospace; font-weight: 600; }
+    .field-label .cur-val { font-size: 13px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
 
-    .option-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-      gap: 6px;
-    }
-    .option-row button.opt {
-      padding: 9px 8px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      background: #fff;
-      font-size: 12.5px;
-      font-weight: 700;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
+    .option-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 6px; }
+    .option-row button.opt { padding: 9px 8px; border-radius: 10px; border: 1px solid var(--line); background: #fff; font-size: 12.5px; font-weight: 700; color: var(--muted); cursor: pointer; transition: all 0.15s ease; }
     .option-row button.opt:hover { background: var(--accent-soft); }
-    .option-row button.opt.active {
-      background: var(--accent); color: #fff; border-color: var(--accent);
-      box-shadow: 0 6px 14px rgba(180, 79, 45, 0.28);
-    }
-    .toggle-btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 8px 14px; border-radius: 999px;
-      background: #fff; border: 1px solid var(--line);
-      font-size: 12.5px; font-weight: 700; color: var(--muted);
-      cursor: pointer; transition: all 0.15s ease;
-    }
+    .option-row button.opt.active { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 6px 14px rgba(180, 79, 45, 0.28); }
+    .toggle-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: #fff; border: 1px solid var(--line); font-size: 12.5px; font-weight: 700; color: var(--muted); cursor: pointer; transition: all 0.15s ease; }
     .toggle-btn.on { background: var(--success); color: #fff; border-color: var(--success); }
-    .toggle-btn .dot {
-      width: 8px; height: 8px; border-radius: 999px; background: var(--muted);
-    }
+    .toggle-btn .dot { width: 8px; height: 8px; border-radius: 999px; background: var(--muted); }
     .toggle-btn.on .dot { background: #fff; }
-
     input[type="range"] { width: 100%; accent-color: var(--accent); }
 
-    .start-bar {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 20px 24px;
-      gap: 16px;
-      flex-wrap: wrap;
+    .split-bar {
+      display: grid; gap: 4px; height: 22px; border-radius: 8px; overflow: hidden;
     }
+    .split-bar div { padding: 4px 0; text-align: center; font-size: 11px; font-weight: 800; color: #fff; }
+    .split-bar .seg-train { background: #b44f2d; }
+    .split-bar .seg-val { background: var(--val-color); }
+    .split-bar .seg-test { background: var(--test-color); }
+
+    .start-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; gap: 16px; flex-wrap: wrap; }
     .preset-bar { display: flex; gap: 8px; flex-wrap: wrap; }
-    .preset-bar button {
-      padding: 8px 14px; border-radius: 12px;
-      background: rgba(47, 107, 95, 0.12); color: var(--accent-2);
-      border: 1px solid rgba(47, 107, 95, 0.2);
-      font-size: 12.5px; font-weight: 700; cursor: pointer;
-    }
+    .preset-bar button { padding: 8px 14px; border-radius: 12px; background: rgba(47, 107, 95, 0.12); color: var(--accent-2); border: 1px solid rgba(47, 107, 95, 0.2); font-size: 12.5px; font-weight: 700; cursor: pointer; }
     .preset-bar button:hover { background: rgba(47, 107, 95, 0.2); }
-    .start-btn {
-      padding: 14px 32px;
-      border-radius: 14px;
-      background: var(--accent);
-      color: #fffaf6;
-      font-size: 15px;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      border: 0;
-      cursor: pointer;
-      box-shadow: 0 14px 28px rgba(180, 79, 45, 0.32);
-      transition: transform 0.15s ease;
-    }
+    .start-btn { padding: 14px 32px; border-radius: 14px; background: var(--accent); color: #fffaf6; font-size: 15px; font-weight: 800; letter-spacing: 0.04em; border: 0; cursor: pointer; box-shadow: 0 14px 28px rgba(180, 79, 45, 0.32); transition: transform 0.15s ease; }
     .start-btn:hover { transform: translateY(-2px); }
 
-    /* ========== 阶段 2：钓鱼场 ========== */
     .layout { display: grid; grid-template-columns: minmax(0, 1.5fr) 380px; gap: 20px; }
     .game-card { display: grid; gap: 14px; }
-    canvas#pond {
-      width: 100%; height: 440px; border-radius: 18px; display: block;
-      background: linear-gradient(180deg, #b9d9ec 0%, #6fa8c9 60%, #3d6e8f 100%);
-      box-shadow: inset 0 8px 20px rgba(0, 0, 0, 0.15);
-      cursor: crosshair;
-    }
-    .stats-strip {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 10px;
-    }
-    .stat {
-      padding: 11px 13px; border-radius: 13px;
-      background: var(--panel-strong); border: 1px solid rgba(217, 200, 179, 0.7);
-    }
+    canvas#pond { width: 100%; height: 440px; border-radius: 18px; display: block; background: linear-gradient(180deg, #b9d9ec 0%, #6fa8c9 60%, #3d6e8f 100%); box-shadow: inset 0 8px 20px rgba(0, 0, 0, 0.15); cursor: crosshair; }
+    .stats-strip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+    .stat { padding: 11px 13px; border-radius: 13px; background: var(--panel-strong); border: 1px solid rgba(217, 200, 179, 0.7); }
     .stat strong { display: block; font-size: 10.5px; color: var(--muted); margin-bottom: 4px; font-weight: 600; letter-spacing: 0.05em; }
-    .stat span { font-size: 19px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .stat span.val { font-size: 19px; font-weight: 800; font-variant-numeric: tabular-nums; display: block; }
     .stat .pill { font-size: 10.5px; color: var(--accent-2); font-weight: 700; margin-top: 2px; display: block; }
+    .stat.val-stat span.val { color: var(--val-color); }
+    .stat.test-stat span.val { color: var(--test-color); }
+    .stat.test-stat .pill { color: var(--test-color); }
 
     .controls { display: grid; gap: 16px; align-content: start; }
     .controls h2 { font-size: 17px; }
     .subtle { color: var(--muted); font-size: 13px; line-height: 1.6; }
-    .live-knob-group {
-      display: grid; gap: 12px;
-      padding: 16px;
-      background: rgba(255, 255, 255, 0.6);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-    }
+    .live-knob-group { display: grid; gap: 12px; padding: 16px; background: rgba(255, 255, 255, 0.6); border: 1px solid var(--line); border-radius: 14px; }
     .live-knob label { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); font-weight: 700; }
-    .live-knob .val { color: var(--accent); font-weight: 800; font-variant-numeric: tabular-nums; }
+    .live-knob .live-val { color: var(--accent); font-weight: 800; font-variant-numeric: tabular-nums; }
 
     .buttons { display: grid; gap: 8px; }
     .buttons .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    button.btn-base {
-      border: 0; border-radius: 12px; padding: 12px 14px;
-      font-size: 13.5px; font-weight: 700; cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-      font-family: inherit;
-    }
+    button.btn-base { border: 0; border-radius: 12px; padding: 12px 14px; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; font-family: inherit; }
     button.btn-base:hover { transform: translateY(-1px); box-shadow: 0 8px 14px rgba(47, 34, 20, 0.14); }
     .primary { background: var(--accent); color: #fffaf6; }
     .secondary { background: #efe2cf; color: var(--text); }
@@ -298,80 +201,54 @@
     .gold-btn { background: var(--gold); color: #fff; }
     .danger-btn { background: var(--danger); color: #fff; }
 
-    canvas#lossChart { width: 100%; height: 200px; border-radius: 12px; background: linear-gradient(180deg, rgba(255, 251, 245, 0.96), rgba(246, 236, 219, 0.96)); border: 1px solid rgba(217, 200, 179, 0.8); }
+    canvas#lossChart { width: 100%; height: 240px; border-radius: 12px; background: linear-gradient(180deg, rgba(255, 251, 245, 0.96), rgba(246, 236, 219, 0.96)); border: 1px solid rgba(217, 200, 179, 0.8); }
     .loss-legend { display: flex; gap: 14px; margin-top: 8px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
     .loss-legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 999px; margin-right: 6px; vertical-align: middle; }
 
-    /* ========== 阶段 3：战绩报告 ========== */
-    .report-grid { display: grid; gap: 16px; }
-    .verdict {
-      padding: 28px 32px;
-      border-radius: 22px;
-      background: linear-gradient(135deg, rgba(180, 79, 45, 0.08), rgba(47, 107, 95, 0.08));
-      border: 1px solid rgba(180, 79, 45, 0.18);
-      text-align: center;
-    }
-    .verdict .big-rank {
-      font-size: clamp(32px, 5vw, 48px);
-      font-weight: 800;
-      color: var(--accent);
-      margin-bottom: 12px;
-    }
-    .verdict .verdict-msg {
-      font-size: 16px;
+    .verdict { padding: 28px 32px; border-radius: 22px; background: linear-gradient(135deg, rgba(180, 79, 45, 0.08), rgba(47, 107, 95, 0.08)); border: 1px solid rgba(180, 79, 45, 0.18); text-align: center; }
+    .verdict .big-rank { font-size: clamp(32px, 5vw, 48px); font-weight: 800; color: var(--accent); margin-bottom: 12px; }
+    .verdict .verdict-msg { font-size: 16px; color: var(--muted); line-height: 1.7; max-width: 60ch; margin: 0 auto; }
+
+    .report-tabs { display: flex; gap: 8px; }
+    .report-tabs button {
+      flex: 1; padding: 14px 18px; border: 0; border-radius: 14px;
+      background: #fff; border: 1px solid var(--line);
+      font-size: 14px; font-weight: 800; cursor: pointer;
+      transition: all 0.18s ease;
       color: var(--muted);
-      line-height: 1.7;
-      max-width: 60ch;
-      margin: 0 auto;
     }
+    .report-tabs button.active.tab-val { background: var(--val-color); color: #fff; border-color: var(--val-color); box-shadow: 0 8px 18px rgba(138, 92, 246, 0.3); }
+    .report-tabs button.active.tab-test { background: var(--test-color); color: #fff; border-color: var(--test-color); box-shadow: 0 8px 18px rgba(220, 47, 91, 0.3); }
+    .report-tabs button .sub { font-size: 11px; opacity: 0.85; font-weight: 600; margin-top: 2px; display: block; }
 
-    .metric-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
+    .test-locked-panel {
+      padding: 36px 28px; text-align: center;
+      background: rgba(220, 47, 91, 0.06);
+      border: 2px dashed rgba(220, 47, 91, 0.35);
+      border-radius: 18px;
     }
-    .metric-card {
-      padding: 18px;
-      border-radius: 16px;
-      background: var(--panel-strong);
-      border: 1px solid var(--line);
+    .test-locked-panel h4 { font-size: 18px; margin-bottom: 8px; color: var(--test-color); }
+    .test-locked-panel p { color: var(--muted); line-height: 1.7; margin-bottom: 16px; }
+    .reveal-btn {
+      padding: 16px 32px; border: 0; border-radius: 14px;
+      background: var(--test-color); color: #fff;
+      font-size: 15px; font-weight: 800;
+      cursor: pointer; box-shadow: 0 12px 24px rgba(220, 47, 91, 0.3);
+      transition: transform 0.15s ease;
     }
-    .metric-card .metric-name {
-      font-size: 12px; color: var(--muted); font-weight: 700;
-      letter-spacing: 0.04em;
-    }
-    .metric-card .metric-eng {
-      font-size: 10.5px; color: var(--accent-2);
-      font-family: ui-monospace, "SF Mono", Menlo, monospace;
-      margin-bottom: 8px;
-    }
-    .metric-card .metric-val {
-      font-size: 36px; font-weight: 800; color: var(--accent);
-      font-variant-numeric: tabular-nums;
-    }
-    .metric-card .metric-formula {
-      font-size: 11px; color: var(--muted);
-      font-family: ui-monospace, "SF Mono", Menlo, monospace;
-      margin-top: 6px;
-    }
+    .reveal-btn:hover { transform: translateY(-2px); }
+    .reveal-btn:disabled { background: var(--muted); cursor: not-allowed; opacity: 0.6; }
 
-    .conf-matrix {
-      display: grid;
-      grid-template-columns: 100px repeat(2, 1fr);
-      gap: 4px;
-      max-width: 420px;
-    }
-    .conf-matrix .ch {
-      padding: 10px; text-align: center;
-      font-size: 12px; font-weight: 700; color: var(--muted);
-    }
-    .conf-matrix .cell {
-      padding: 18px 10px;
-      text-align: center;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.6);
-      border: 1px solid var(--line);
-    }
+    .metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .metric-card { padding: 18px; border-radius: 16px; background: var(--panel-strong); border: 1px solid var(--line); }
+    .metric-card .metric-name { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: 0.04em; }
+    .metric-card .metric-eng { font-size: 10.5px; color: var(--accent-2); font-family: ui-monospace, "SF Mono", Menlo, monospace; margin-bottom: 8px; }
+    .metric-card .metric-val { font-size: 36px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .metric-card .metric-formula { font-size: 11px; color: var(--muted); font-family: ui-monospace, "SF Mono", Menlo, monospace; margin-top: 6px; }
+
+    .conf-matrix { display: grid; grid-template-columns: 100px repeat(2, 1fr); gap: 4px; max-width: 420px; }
+    .conf-matrix .ch { padding: 10px; text-align: center; font-size: 12px; font-weight: 700; color: var(--muted); }
+    .conf-matrix .cell { padding: 18px 10px; text-align: center; border-radius: 10px; background: rgba(255, 255, 255, 0.6); border: 1px solid var(--line); }
     .conf-matrix .cell.tp { background: rgba(42, 157, 106, 0.18); border-color: rgba(42, 157, 106, 0.4); }
     .conf-matrix .cell.fp { background: rgba(198, 61, 61, 0.16); border-color: rgba(198, 61, 61, 0.4); }
     .conf-matrix .cell.fn { background: rgba(198, 61, 61, 0.16); border-color: rgba(198, 61, 61, 0.4); }
@@ -379,22 +256,10 @@
     .conf-matrix .cell .label { font-size: 11px; color: var(--muted); font-weight: 700; }
     .conf-matrix .cell .num { font-size: 22px; font-weight: 800; color: var(--text); margin-top: 4px; }
 
-    /* 配置摘要 */
-    .config-summary {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-      padding: 14px 16px;
-      background: rgba(255, 255, 255, 0.5);
-      border: 1px dashed var(--line);
-      border-radius: 12px;
-      font-size: 12px;
-      color: var(--muted);
-    }
+    .config-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 14px 16px; background: rgba(255, 255, 255, 0.5); border: 1px dashed var(--line); border-radius: 12px; font-size: 12px; color: var(--muted); }
     .config-summary div { display: flex; gap: 6px; }
     .config-summary div strong { color: var(--text); }
 
-    /* ML 对照表（保留） */
     .ml-mapping { padding: 24px 28px; }
     .ml-mapping h3 { font-size: 20px; margin-bottom: 6px; }
     .ml-mapping .lead { color: var(--muted); font-size: 14px; line-height: 1.7; margin-bottom: 18px; max-width: 70ch; }
@@ -404,7 +269,8 @@
     .cat-title { background: linear-gradient(135deg, var(--accent), #c66541); color: #fffaf6; padding: 11px 16px; font-size: 13px; font-weight: 800; letter-spacing: 0.04em; }
     .category-card.alt .cat-title { background: linear-gradient(135deg, var(--accent-2), #4d8f81); }
     .category-card.gold .cat-title { background: linear-gradient(135deg, var(--gold), #c98a3a); }
-    .category-card.purple .cat-title { background: linear-gradient(135deg, var(--test-color), #6c44d3); }
+    .category-card.purple .cat-title { background: linear-gradient(135deg, var(--val-color), #6c44d3); }
+    .category-card.test .cat-title { background: linear-gradient(135deg, var(--test-color), #a01f43); }
     .mapping-table { width: 100%; border-collapse: collapse; font-size: 13px; }
     .mapping-table th { background: rgba(255, 250, 241, 0.7); color: var(--muted); padding: 9px 14px; text-align: left; font-weight: 700; font-size: 11px; letter-spacing: 0.04em; border-bottom: 1px solid var(--line); }
     .mapping-table td { padding: 9px 14px; border-bottom: 1px solid rgba(217, 200, 179, 0.5); vertical-align: top; line-height: 1.5; }
@@ -416,12 +282,10 @@
     .footer-note { text-align: center; color: var(--muted); font-size: 12px; padding: 8px 0; line-height: 1.6; }
     .footer-note a { color: var(--accent); text-decoration: none; font-weight: 600; }
 
-    @keyframes pop {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.08); }
-      100% { transform: scale(1); }
-    }
+    @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
     .pop { animation: pop 0.32s ease; }
+    @keyframes shake { 0%,100% { transform: translate(0,0);} 25% { transform: translate(-6px,0);} 75% { transform: translate(6px,0);} }
+    .shake { animation: shake 0.5s ease; }
 
     @media (max-width: 1080px) {
       .hero { grid-template-columns: 1fr; }
@@ -442,49 +306,56 @@
 <body>
   <div class="page">
 
-    <!-- 顶栏 -->
     <div class="topbar">
-      <div class="brand"><strong>MSAI 300</strong> · 人工智能基础 · 第二讲互动版</div>
+      <div class="brand"><strong>MSAI 300</strong> · 人工智能基础 · 第二讲互动版 v4</div>
       <a class="switch" id="switchToClassic" href="classic.html">📐 切到教学讲解版 →</a>
     </div>
 
-    <!-- HERO -->
     <section class="hero">
       <div>
-        <span class="eyebrow">钓鱼塘大学 · 全装备版（严格对标 PPT）</span>
-        <h1>先去渔具店选装备<br/>再出海卷一把</h1>
+        <span class="eyebrow">钓鱼塘大学 v4 · 数据三分版</span>
+        <h1>练习池 → 模拟考池 → 高考池<br/>高考成绩只能公布一次</h1>
         <p class="subtitle">
-          按第二讲 PPT 的<strong>三类超参数</strong>分门别类，每个装备都是 ML 里的一个真实选项：<br/>
-          <strong>L1/L2 参数管制 · Dropout 随机失活 · 早停 · 数据增强 · 训练验证拆分</strong>
+          按 PPT 第 13 页严格三分：<strong>训练 70% · 验证 15% · 测试 15%</strong><br/>
+          模拟考能多看几次，<strong>高考成绩点完就锁死</strong>——这才是真实泛化能力。
         </p>
       </div>
       <div class="meow-box" id="meowBox">
         <div class="avatar">🐱</div>
         <div class="name">喵老板</div>
         <div class="speech" id="meowSpeech">
-          欢迎光临。今天先别急着下水——好好挑装备，等会儿钓鱼才不会翻车。课件里说的超参数，我这都摆出来了。
+          欢迎光临。今天的新规矩：你的高考池被我锁起来了，玩到最后才能开。先在练习池+模拟考池上调你的装备。
         </div>
         <div class="hint" id="meowHint">step 1/3 · 渔具店配置中</div>
       </div>
     </section>
 
-    <!-- 阶段进度条 -->
     <div class="panel stage-bar">
-      <div class="stage-step active" id="step1" data-stage="config">① 渔具店</div>
+      <div class="stage-step active" id="step1" data-stage="config">① 渔具店 <span class="role">👤 人决定</span></div>
       <div class="stage-arrow">→</div>
-      <div class="stage-step" id="step2" data-stage="fishing">② 出海钓鱼</div>
+      <div class="stage-step" id="step2" data-stage="fishing">② 出海钓鱼 <span class="role">🤖 机器训练</span></div>
       <div class="stage-arrow">→</div>
-      <div class="stage-step" id="step3" data-stage="report">③ 战绩评定</div>
+      <div class="stage-step" id="step3" data-stage="report">③ 战绩评定 <span class="role">👤 人评判</span></div>
     </div>
 
-    <!-- ============ 阶段 1：渔具店 ============ -->
     <section class="stage gear-shop" id="stageConfig">
 
-      <!-- 快速预设 -->
+      <div class="auto-search-banner">
+        <div>
+          <div class="title">🤖 不会调？让喵老板帮你网格搜索</div>
+          <div class="desc">自动试 <strong>12 组装备组合</strong>，看哪组在<strong>模拟考池</strong>上表现最好，按排名给你看。点"采用"自动填入配置。</div>
+        </div>
+        <button class="auto-search-btn" id="autoSearchBtn">🔍 开始自动搜索 (12 组)</button>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-progress" id="searchProgress">准备中...</div>
+        <div id="searchList"></div>
+      </div>
+
       <div class="panel start-bar">
         <div>
           <h2 style="margin-bottom:4px">🎒 渔具店</h2>
-          <p class="subtle">PPT 把超参数分成<strong style="color:var(--accent)">数据准备 · 模型设定 · 模型训练</strong>三类，每个装备都对应一个真实超参数。</p>
+          <p class="subtle">按 PPT 把超参数分成 <strong>数据准备 · 模型设定 · 模型训练</strong> 三类。每个装备背后是真实 ML 概念。</p>
         </div>
         <div class="preset-bar">
           <button data-preset="newbie">🌱 新手村</button>
@@ -496,19 +367,17 @@
 
       <div class="shop-grid">
 
-        <!-- A. 数据准备 -->
         <div class="shop-card">
           <div class="card-head">
             <div>
               <div class="card-title">🗺️ A. 数据准备</div>
-              <div class="card-tech">超参数 (1) · Data Preparation · 特征工程</div>
+              <div class="card-tech">超参数 (1) · Data Preparation</div>
             </div>
+            <div class="card-role-tag">👤 你决定</div>
           </div>
           <div class="card-body">
             <div class="field-row">
-              <div class="field-label">
-                鱼塘地图（数据真实分布）<span class="tech">true f(x)</span>
-              </div>
+              <div class="field-label">鱼塘地图 <span class="tech">true f(x)</span></div>
               <div class="option-row" data-key="dataShape">
                 <button class="opt active" data-val="linear">📏 平静(直线)</button>
                 <button class="opt" data-val="quadratic">🌀 旋涡(二次)</button>
@@ -516,245 +385,211 @@
               </div>
             </div>
             <div class="field-row">
-              <div class="field-label">
-                鱼群规模 <span class="tech">dataset size</span>
-                <span class="cur-val" id="cur-datasetSize">14</span>
-              </div>
+              <div class="field-label">鱼群规模 <span class="tech">dataset size</span><span class="cur-val" id="cur-datasetSize">20</span></div>
               <div class="option-row" data-key="datasetSize">
-                <button class="opt" data-val="8">8 条·稀少</button>
-                <button class="opt active" data-val="14">14 条·适中</button>
-                <button class="opt" data-val="30">30 条·密集</button>
-                <button class="opt" data-val="60">60 条·爆满</button>
+                <button class="opt" data-val="14">14</button>
+                <button class="opt active" data-val="20">20</button>
+                <button class="opt" data-val="40">40</button>
+                <button class="opt" data-val="80">80</button>
               </div>
             </div>
             <div class="field-row">
-              <div class="field-label">
-                水浑浊度 <span class="tech">noise level σ</span>
-                <span class="cur-val" id="cur-noiseLevel">1.0</span>
-              </div>
+              <div class="field-label">水浑浊度 <span class="tech">noise σ</span><span class="cur-val" id="cur-noiseLevel">1.0</span></div>
               <div class="option-row" data-key="noiseLevel">
-                <button class="opt" data-val="0.3">清澈 0.3</button>
-                <button class="opt active" data-val="1.0">略浑 1.0</button>
-                <button class="opt" data-val="2.0">浑浊 2.0</button>
-                <button class="opt" data-val="4.0">完全看不见 4.0</button>
+                <button class="opt" data-val="0.3">清澈</button>
+                <button class="opt active" data-val="1.0">略浑</button>
+                <button class="opt" data-val="2.0">浑浊</button>
+                <button class="opt" data-val="4.0">看不见</button>
               </div>
             </div>
             <div class="field-row">
-              <div class="field-label">
-                划测试鱼塘 <span class="tech">train / test split</span>
+              <div class="field-label">📊 数据三分（练习/模考/高考）<span class="tech">train/val/test split</span></div>
+              <div class="split-bar" id="splitBar">
+                <div class="seg-train" id="segTrain">练习 70%</div>
+                <div class="seg-val" id="segVal">模考 15%</div>
+                <div class="seg-test" id="segTest">高考 15%</div>
               </div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">模拟考池占比 <span class="tech">validation %</span><span class="cur-val" id="cur-validationSplit">0.15</span></div>
+              <div class="option-row" data-key="validationSplit">
+                <button class="opt" data-val="0.1">10%</button>
+                <button class="opt active" data-val="0.15">15%</button>
+                <button class="opt" data-val="0.2">20%</button>
+                <button class="opt" data-val="0.3">30%</button>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">高考池占比 <span class="tech">test %</span><span class="cur-val" id="cur-testSplit">0.15</span></div>
               <div class="option-row" data-key="testSplit">
-                <button class="opt" data-val="0">不划(全练习)</button>
-                <button class="opt" data-val="0.2">留 20% 测试</button>
-                <button class="opt active" data-val="0.3">留 30% 测试</button>
+                <button class="opt" data-val="0.1">10%</button>
+                <button class="opt active" data-val="0.15">15%</button>
+                <button class="opt" data-val="0.2">20%</button>
+                <button class="opt" data-val="0.3">30%</button>
               </div>
             </div>
             <div class="field-row">
-              <div class="field-label">
-                数据增强 <span class="tech">data augmentation</span>
-              </div>
+              <div class="field-label">数据增强 <span class="tech">augmentation</span></div>
               <div>
                 <button class="toggle-btn" data-key="dataAugmentation"><span class="dot"></span> <span class="label">关</span></button>
-                <span class="subtle" style="margin-left:10px">水里加倒影，让模型也练镜像版本</span>
+                <span class="subtle" style="margin-left:10px">练习池里加镜像鱼</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- B. 模型设定 -->
         <div class="shop-card alt">
           <div class="card-head">
             <div>
               <div class="card-title">🎣 B. 模型设定</div>
-              <div class="card-tech">超参数 (2) · Model Configuration · 算法与架构</div>
+              <div class="card-tech">超参数 (2) · Model Configuration</div>
             </div>
+            <div class="card-role-tag">👤 你决定</div>
           </div>
           <div class="card-body">
             <div class="field-row">
-              <div class="field-label">
-                鱼竿类型 <span class="tech">algorithm</span>
-              </div>
-              <div class="option-row" data-key="modelType">
-                <button class="opt active" data-val="polynomial">🎣 多项式竿(回归)</button>
-              </div>
-              <span class="subtle">本游戏聚焦回归任务；分类任务（logistic / 随机森林）未来开放</span>
-            </div>
-            <div class="field-row">
-              <div class="field-label">
-                鱼竿节数 <span class="tech">polynomial degree d</span>
-                <span class="cur-val" id="cur-polynomialDegree">1</span>
-              </div>
+              <div class="field-label">鱼竿节数 <span class="tech">polynomial degree d</span><span class="cur-val" id="cur-polynomialDegree">1</span></div>
               <div class="option-row" data-key="polynomialDegree">
-                <button class="opt active" data-val="1">1 节·直竿</button>
+                <button class="opt active" data-val="1">1·直竿</button>
                 <button class="opt" data-val="2">2 节</button>
                 <button class="opt" data-val="3">3 节</button>
                 <button class="opt" data-val="5">5 节</button>
                 <button class="opt" data-val="7">7 节</button>
-                <button class="opt" data-val="15">15 节·卷王</button>
+                <button class="opt" data-val="15">15·卷王</button>
               </div>
-              <span class="subtle">PPT 第 5 关讲的"模型复杂度"。次数越高，能拟合的形状越复杂，也越容易过拟合。</span>
+              <span class="subtle">次数越高越容易过拟合。</span>
             </div>
           </div>
         </div>
 
-        <!-- C. 训练 -->
         <div class="shop-card gold">
           <div class="card-head">
             <div>
               <div class="card-title">⚙️ C. 模型训练</div>
-              <div class="card-tech">超参数 (3) · Training · 优化器·学习率·训练周期</div>
+              <div class="card-tech">超参数 (3) · Training</div>
             </div>
+            <div class="card-role-tag">👤 你定 → 🤖 机器执行</div>
           </div>
           <div class="card-body">
             <div class="field-row">
-              <div class="field-label">
-                急性子程度 <span class="tech">learning rate η</span>
-                <span class="cur-val" id="cur-learningRate">0.02</span>
-              </div>
+              <div class="field-label">急性子 η <span class="tech">learning rate</span><span class="cur-val" id="cur-learningRate">0.02</span></div>
               <div class="option-row" data-key="learningRate">
-                <button class="opt" data-val="0.005">慢性子 0.005</button>
-                <button class="opt active" data-val="0.02">正常 0.02</button>
-                <button class="opt" data-val="0.05">急 0.05</button>
-                <button class="opt" data-val="0.15">神经质 0.15</button>
+                <button class="opt" data-val="0.005">慢</button>
+                <button class="opt active" data-val="0.02">正常</button>
+                <button class="opt" data-val="0.05">急</button>
+                <button class="opt" data-val="0.15">神经质</button>
               </div>
             </div>
             <div class="field-row">
-              <div class="field-label">
-                体力上限 <span class="tech">max epochs</span>
-                <span class="cur-val" id="cur-maxEpoch">1000</span>
-              </div>
+              <div class="field-label">体力上限 <span class="tech">max epoch</span><span class="cur-val" id="cur-maxEpoch">1000</span></div>
               <div class="option-row" data-key="maxEpoch">
-                <button class="opt" data-val="100">100 短工</button>
-                <button class="opt" data-val="500">500 适中</button>
-                <button class="opt active" data-val="1000">1000 标准</button>
-                <button class="opt" data-val="5000">5000 卷王</button>
+                <button class="opt" data-val="200">200</button>
+                <button class="opt" data-val="500">500</button>
+                <button class="opt active" data-val="1000">1000</button>
+                <button class="opt" data-val="3000">3000</button>
               </div>
             </div>
             <div class="field-row">
-              <div class="field-label">
-                早收工开关 <span class="tech">early stopping</span>
-              </div>
+              <div class="field-label">早收工 <span class="tech">early stopping</span></div>
               <div>
                 <button class="toggle-btn" data-key="earlyStopping"><span class="dot"></span> <span class="label">关</span></button>
-                <span class="subtle" style="margin-left:10px">测试损失开始上升就立刻收工</span>
+                <span class="subtle" style="margin-left:10px">模拟考池损失上升就收工</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- D. 防过拟合 -->
         <div class="shop-card danger">
           <div class="card-head">
             <div>
               <div class="card-title">🛡️ D. 防过拟合装备</div>
-              <div class="card-tech">PPT 红字 · Regularization · 防卷神器</div>
+              <div class="card-tech">PPT 第 17-19 页 · 防卷神器</div>
             </div>
+            <div class="card-role-tag">👤 你决定</div>
           </div>
           <div class="card-body">
             <div class="field-row">
-              <div class="field-label">
-                L1 参数管制 <span class="tech">L1 reg λ · 让权重变 0(稀疏)</span>
-                <span class="cur-val" id="cur-l1Lambda">0</span>
-              </div>
+              <div class="field-label">L1 参数管制 <span class="tech">L1 reg λ</span><span class="cur-val" id="cur-l1Lambda">0</span></div>
               <div class="option-row" data-key="l1Lambda">
                 <button class="opt active" data-val="0">关</button>
-                <button class="opt" data-val="0.01">弱 0.01</button>
-                <button class="opt" data-val="0.1">中 0.1</button>
-                <button class="opt" data-val="0.5">强 0.5</button>
+                <button class="opt" data-val="0.01">弱</button>
+                <button class="opt" data-val="0.1">中</button>
+                <button class="opt" data-val="0.5">强</button>
               </div>
             </div>
             <div class="field-row">
-              <div class="field-label">
-                L2 参数管制 <span class="tech">L2 reg λ · 让所有权重变小</span>
-                <span class="cur-val" id="cur-l2Lambda">0</span>
-              </div>
+              <div class="field-label">L2 参数管制 <span class="tech">L2 reg λ</span><span class="cur-val" id="cur-l2Lambda">0</span></div>
               <div class="option-row" data-key="l2Lambda">
                 <button class="opt active" data-val="0">关</button>
-                <button class="opt" data-val="0.01">弱 0.01</button>
-                <button class="opt" data-val="0.1">中 0.1</button>
-                <button class="opt" data-val="0.5">强 0.5</button>
+                <button class="opt" data-val="0.01">弱</button>
+                <button class="opt" data-val="0.1">中</button>
+                <button class="opt" data-val="0.5">强</button>
               </div>
             </div>
             <div class="field-row">
-              <div class="field-label">
-                Dropout 随机失活 <span class="tech">dropout p · 训练时随机让某些权重不更新</span>
-                <span class="cur-val" id="cur-dropoutP">0</span>
-              </div>
+              <div class="field-label">Dropout <span class="tech">dropout p</span><span class="cur-val" id="cur-dropoutP">0</span></div>
               <div class="option-row" data-key="dropoutP">
                 <button class="opt active" data-val="0">关</button>
                 <button class="opt" data-val="0.3">p=0.3</button>
-                <button class="opt" data-val="0.5">p=0.5(经典)</button>
+                <button class="opt" data-val="0.5">p=0.5</button>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- E. 评估 -->
         <div class="shop-card purple">
           <div class="card-head">
             <div>
               <div class="card-title">🎯 E. 评判标准</div>
-              <div class="card-tech">性能指标 · Accuracy / Precision / Recall / F1</div>
+              <div class="card-tech">性能指标 · PPT 第 47-53 页</div>
             </div>
+            <div class="card-role-tag">👤 你决定</div>
           </div>
           <div class="card-body">
             <div class="field-row">
-              <div class="field-label">
-                主要 KPI <span class="tech">primary metric</span>
-              </div>
+              <div class="field-label">主要 KPI</div>
               <div class="option-row" data-key="primaryMetric">
-                <button class="opt active" data-val="mse">MSE 损失</button>
+                <button class="opt active" data-val="mse">MSE</button>
                 <button class="opt" data-val="accuracy">准确率</button>
                 <button class="opt" data-val="precision">精确率</button>
                 <button class="opt" data-val="recall">召回率</button>
-                <button class="opt" data-val="f1">F1 (水桶)</button>
+                <button class="opt" data-val="f1">F1</button>
               </div>
-              <span class="subtle">分类指标基于"鱼是否被钓中"二分类：|ŷ−y| &lt; ε 算钓中(TP)</span>
             </div>
             <div class="field-row">
-              <div class="field-label">
-                钓中阈值 <span class="tech">ε</span>
-                <span class="cur-val" id="cur-hitThreshold">1.5</span>
-              </div>
+              <div class="field-label">钓中阈值 ε <span class="cur-val" id="cur-hitThreshold">1.5</span></div>
               <div class="option-row" data-key="hitThreshold">
-                <button class="opt" data-val="0.5">严格 0.5</button>
-                <button class="opt" data-val="1.0">较严 1.0</button>
-                <button class="opt active" data-val="1.5">中等 1.5</button>
-                <button class="opt" data-val="2.5">宽松 2.5</button>
+                <button class="opt" data-val="0.5">严格</button>
+                <button class="opt" data-val="1.0">较严</button>
+                <button class="opt active" data-val="1.5">中等</button>
+                <button class="opt" data-val="2.5">宽松</button>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- F. 出海按钮 -->
         <div class="shop-card">
           <div class="card-head">
             <div>
               <div class="card-title">🚀 准备就绪</div>
-              <div class="card-tech">点下面的大按钮，进入钓鱼场</div>
+              <div class="card-tech">出海钓鱼</div>
             </div>
           </div>
           <div class="card-body" style="display:flex; flex-direction:column; gap:14px; align-items:center;">
             <div style="font-size:14px; color:var(--muted); line-height:1.7; text-align:center;">
-              你选好的所有装备会带进鱼塘，<br/>
-              <strong style="color:var(--accent)">中途也能改某些超参数</strong>
+              <strong>高考池将被锁定</strong>，训练时不参与<br/>
+              战绩页才能公布，且<strong style="color:var(--test-color)">只能公布一次</strong>
             </div>
             <button class="start-btn" id="goFishingBtn">🎣 出海钓鱼</button>
-            <div class="subtle" style="font-size:11px; text-align:center;">
-              进入钓鱼场后会自动开启梯度下降训练
-            </div>
           </div>
         </div>
 
       </div>
     </section>
 
-    <!-- ============ 阶段 2：钓鱼场 ============ -->
     <section class="stage hidden" id="stageFishing">
 
-      <div class="panel config-summary" id="configSummary">
-        <!-- JS 注入 -->
-      </div>
+      <div class="panel config-summary" id="configSummary"></div>
 
       <div class="layout">
         <div class="panel game-card">
@@ -763,27 +598,27 @@
           <div class="stats-strip">
             <div class="stat">
               <strong>训练损失</strong>
-              <span id="lossVal">--</span>
-              <span class="pill" id="lossPill">空仓中</span>
+              <span class="val" id="lossVal">--</span>
+              <span class="pill" id="lossPill">练习池</span>
             </div>
-            <div class="stat">
-              <strong>测试损失</strong>
-              <span id="testLossVal" style="color:var(--test-color)">--</span>
-              <span class="pill">泛化能力</span>
+            <div class="stat val-stat">
+              <strong>模拟考损失</strong>
+              <span class="val" id="valLossVal">--</span>
+              <span class="pill">可以多看</span>
+            </div>
+            <div class="stat test-stat">
+              <strong>高考损失</strong>
+              <span class="val" id="testLossVal">🔒</span>
+              <span class="pill">战绩页公布</span>
             </div>
             <div class="stat">
               <strong>打工天数</strong>
-              <span id="epochVal">0</span>
+              <span class="val" id="epochVal">0</span>
               <span class="pill" id="epochHint">/上限</span>
             </div>
             <div class="stat">
-              <strong>钓中率</strong>
-              <span id="hitRate">0%</span>
-              <span class="pill" id="hitHint">accuracy @ ε</span>
-            </div>
-            <div class="stat">
-              <strong>F1 实时</strong>
-              <span id="liveF1">--</span>
+              <strong>F1 (模拟考)</strong>
+              <span class="val" id="liveF1">--</span>
               <span class="pill">分类性能</span>
             </div>
           </div>
@@ -792,22 +627,16 @@
         <aside class="panel controls">
           <div>
             <h2>🎛 现场可调超参</h2>
-            <p class="subtle">学习率 / 早停可以中途改，其他装备要回渔具店重选。</p>
+            <p class="subtle">这里改的立刻生效。其他装备要回渔具店重选。</p>
           </div>
 
           <div class="live-knob-group">
             <div class="live-knob">
-              <label>
-                <span>急性子 η</span>
-                <span class="val" id="liveLR">0.020</span>
-              </label>
+              <label><span>学习率 η</span><span class="live-val" id="liveLR">0.020</span></label>
               <input id="liveLRSlider" type="range" min="0.001" max="0.18" step="0.001" value="0.02" />
             </div>
             <div class="live-knob">
-              <label>
-                <span>早收工开关</span>
-                <span class="val" id="liveES">关</span>
-              </label>
+              <label><span>早收工</span><span class="live-val" id="liveES">关</span></label>
               <button class="btn-base secondary" id="liveESToggle">切换早停</button>
             </div>
           </div>
@@ -819,176 +648,193 @@
               <button class="btn-base ghost" id="resetBtn">重置权重</button>
             </div>
             <button class="btn-base gold-btn" id="reportBtn">📊 看战绩</button>
-            <button class="btn-base danger-btn" id="backToConfigBtn">← 回渔具店重选</button>
+            <button class="btn-base danger-btn" id="backToConfigBtn">← 回渔具店</button>
           </div>
         </aside>
       </div>
 
       <div class="panel">
-        <h3>📉 学习曲线 · 验证曲线（PPT 第 13、14 页）</h3>
-        <p class="subtle" style="margin-top:6px">训练损失（橙）每天都在掉；测试损失（紫虚）如果反向上扬 = 你正在过拟合。</p>
+        <h3>📉 学习曲线 + 验证曲线（PPT 第 13-16 页）</h3>
+        <p class="subtle" style="margin-top:6px">训练损失（橙）和模拟考损失（紫虚）实时显示。高考损失锁定。</p>
         <canvas id="lossChart" width="900" height="240" style="margin-top:14px"></canvas>
         <div class="loss-legend">
-          <span><span class="swatch" style="background:#b44f2d"></span>训练损失（你练习的鱼）</span>
-          <span><span class="swatch" style="background:#8a5cf6"></span>测试损失（没见过的紫鱼）</span>
+          <span><span class="swatch" style="background:#b44f2d"></span>训练损失</span>
+          <span><span class="swatch" style="background:#8a5cf6"></span>模拟考损失</span>
+          <span><span class="swatch" style="background:#dc2f5b"></span>高考损失（锁定）</span>
           <span id="earlyStopMarker" style="display:none; color:var(--danger); font-weight:700;">🛑 早停触发</span>
         </div>
       </div>
     </section>
 
-    <!-- ============ 阶段 3：战绩报告 ============ -->
     <section class="stage hidden" id="stageReport">
 
       <div class="panel verdict">
         <div class="big-rank" id="verdictRank">实习生</div>
-        <div class="verdict-msg" id="verdictMsg">老板看着你的工作量报告，缓缓点了点头。</div>
+        <div class="verdict-msg" id="verdictMsg">点下面 Tab 看模拟考成绩 / 高考成绩。</div>
         <div style="margin-top:20px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-          <button class="btn-base secondary" id="reportBackBtn">← 回钓鱼场继续</button>
+          <button class="btn-base secondary" id="reportBackBtn">← 回钓鱼场</button>
           <button class="btn-base ghost" id="reportRestartBtn">🔄 重新配装备</button>
         </div>
       </div>
 
-      <div class="panel">
-        <h3>📊 四大性能指标（PPT 第 47-53 页）</h3>
-        <p class="subtle" style="margin-top:6px">每条鱼被分为"该钓中"（实际标签 1：|y| 大于 0.5）vs "该放走"。模型预测 ŷ 同样阈值化。</p>
+      <div class="panel" style="padding:0;">
+        <div class="report-tabs">
+          <button class="tab-val active" id="tabVal">📝 模拟考成绩<span class="sub">验证集 · 可多看</span></button>
+          <button class="tab-test" id="tabTest">🎓 高考成绩<span class="sub">测试集 · 一次性</span></button>
+        </div>
+      </div>
 
-        <div class="metric-grid" style="margin-top:16px">
-          <div class="metric-card">
-            <div class="metric-name">准确率</div>
-            <div class="metric-eng">Accuracy</div>
-            <div class="metric-val" id="mAccuracy">--</div>
-            <div class="metric-formula">Correct / Total</div>
+      <div id="tabContentVal">
+        <div class="panel">
+          <h3>📝 模拟考四大指标（验证集）</h3>
+          <p class="subtle" style="margin-top:6px">基于模拟考池。每条鱼按 |y| &gt; 0.5 二值化。</p>
+          <div class="metric-grid" style="margin-top:16px">
+            <div class="metric-card"><div class="metric-name">准确率</div><div class="metric-eng">Accuracy</div><div class="metric-val" id="mvAccuracy">--</div><div class="metric-formula">Correct / Total</div></div>
+            <div class="metric-card"><div class="metric-name">精确率</div><div class="metric-eng">Precision</div><div class="metric-val" id="mvPrecision">--</div><div class="metric-formula">TP / (TP + FP)</div></div>
+            <div class="metric-card"><div class="metric-name">召回率</div><div class="metric-eng">Recall</div><div class="metric-val" id="mvRecall">--</div><div class="metric-formula">TP / (TP + FN)</div></div>
+            <div class="metric-card"><div class="metric-name">F1</div><div class="metric-eng">F1 Score</div><div class="metric-val" id="mvF1">--</div><div class="metric-formula">2·P·R / (P+R)</div></div>
           </div>
-          <div class="metric-card">
-            <div class="metric-name">精确率</div>
-            <div class="metric-eng">Precision</div>
-            <div class="metric-val" id="mPrecision">--</div>
-            <div class="metric-formula">TP / (TP + FP)</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-name">召回率</div>
-            <div class="metric-eng">Recall</div>
-            <div class="metric-val" id="mRecall">--</div>
-            <div class="metric-formula">TP / (TP + FN)</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-name">F1（水桶理论）</div>
-            <div class="metric-eng">F1 Score</div>
-            <div class="metric-val" id="mF1">--</div>
-            <div class="metric-formula">2·P·R / (P+R)</div>
+        </div>
+        <div class="panel">
+          <h3>🔲 模拟考混淆矩阵</h3>
+          <div class="conf-matrix" style="margin-top:16px">
+            <div class="ch"></div><div class="ch">预测：钓中</div><div class="ch">预测：放走</div>
+            <div class="ch">实际：该钓</div>
+            <div class="cell tp"><div class="label">TP</div><div class="num" id="cmvTP">--</div></div>
+            <div class="cell fn"><div class="label">FN</div><div class="num" id="cmvFN">--</div></div>
+            <div class="ch">实际：该放</div>
+            <div class="cell fp"><div class="label">FP</div><div class="num" id="cmvFP">--</div></div>
+            <div class="cell tn"><div class="label">TN</div><div class="num" id="cmvTN">--</div></div>
           </div>
         </div>
       </div>
 
-      <div class="panel">
-        <h3>🔲 混淆矩阵 · Confusion Matrix</h3>
-        <p class="subtle" style="margin-top:6px">PPT 第 49 页的 TP / FP / FN / TN 直接可视化。</p>
+      <div id="tabContentTest" style="display:none;">
 
-        <div class="conf-matrix" style="margin-top:16px">
-          <div class="ch"></div>
-          <div class="ch">预测：钓中</div>
-          <div class="ch">预测：放走</div>
-
-          <div class="ch">实际：该钓</div>
-          <div class="cell tp">
-            <div class="label">TP · True Positive</div>
-            <div class="num" id="cmTP">--</div>
-          </div>
-          <div class="cell fn">
-            <div class="label">FN · False Negative</div>
-            <div class="num" id="cmFN">--</div>
-          </div>
-
-          <div class="ch">实际：该放</div>
-          <div class="cell fp">
-            <div class="label">FP · False Positive</div>
-            <div class="num" id="cmFP">--</div>
-          </div>
-          <div class="cell tn">
-            <div class="label">TN · True Negative</div>
-            <div class="num" id="cmTN">--</div>
+        <div class="panel" id="testLockedWrap">
+          <div class="test-locked-panel">
+            <h4>🔒 高考成绩未公布</h4>
+            <p>
+              PPT 第 13 页原话：<br/>
+              "<strong>测试集理论上只能碰一次</strong>，就像高考只能参加一次。"<br/><br/>
+              点下面按钮公布——按完<strong>不能再回去改装备 retest</strong>。
+            </p>
+            <button class="reveal-btn" id="revealTestBtn">📢 公布高考成绩（只能点一次！）</button>
           </div>
         </div>
+
+        <div id="testResultsWrap" style="display:none;">
+          <div class="panel">
+            <h3>🎓 高考四大指标（测试集）</h3>
+            <p class="subtle" style="margin-top:6px">这才是模型的<strong>真实泛化能力</strong>。</p>
+            <div class="metric-grid" style="margin-top:16px">
+              <div class="metric-card"><div class="metric-name">准确率</div><div class="metric-eng">Accuracy</div><div class="metric-val" id="mtAccuracy" style="color:var(--test-color)">--</div><div class="metric-formula">Correct / Total</div></div>
+              <div class="metric-card"><div class="metric-name">精确率</div><div class="metric-eng">Precision</div><div class="metric-val" id="mtPrecision" style="color:var(--test-color)">--</div><div class="metric-formula">TP / (TP + FP)</div></div>
+              <div class="metric-card"><div class="metric-name">召回率</div><div class="metric-eng">Recall</div><div class="metric-val" id="mtRecall" style="color:var(--test-color)">--</div><div class="metric-formula">TP / (TP + FN)</div></div>
+              <div class="metric-card"><div class="metric-name">F1</div><div class="metric-eng">F1 Score</div><div class="metric-val" id="mtF1" style="color:var(--test-color)">--</div><div class="metric-formula">2·P·R / (P+R)</div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>🔲 高考混淆矩阵</h3>
+            <div class="conf-matrix" style="margin-top:16px">
+              <div class="ch"></div><div class="ch">预测：钓中</div><div class="ch">预测：放走</div>
+              <div class="ch">实际：该钓</div>
+              <div class="cell tp"><div class="label">TP</div><div class="num" id="cmtTP">--</div></div>
+              <div class="cell fn"><div class="label">FN</div><div class="num" id="cmtFN">--</div></div>
+              <div class="ch">实际：该放</div>
+              <div class="cell fp"><div class="label">FP</div><div class="num" id="cmtFP">--</div></div>
+              <div class="cell tn"><div class="label">TN</div><div class="num" id="cmtTN">--</div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>🔍 泛化能力诊断</h3>
+            <div id="generalizationVerdict" style="margin-top:10px; padding:14px 18px; background:rgba(255,255,255,0.5); border:1px solid var(--line); border-radius:12px; font-size:14px; line-height:1.7; color:var(--text);"></div>
+          </div>
+        </div>
+
       </div>
 
       <div class="panel">
         <h3>📝 完整训练记录</h3>
-        <div id="trainingLog" class="subtle" style="margin-top:8px; line-height:2; font-family:ui-monospace, 'SF Mono', Menlo, monospace; font-size:12px;">
-          <!-- JS 注入 -->
-        </div>
+        <div id="trainingLog" class="subtle" style="margin-top:8px; line-height:2; font-family:ui-monospace, 'SF Mono', Menlo, monospace; font-size:12px;"></div>
       </div>
 
     </section>
 
-    <!-- ============ ML 术语对照（保留）============ -->
     <section class="panel ml-mapping">
-      <h3>📖 游戏术语 ↔ 机器学习术语 · 全对照（按 PPT 严格对标）</h3>
-      <p class="lead">
-        每个装备、每个滑块、每个指标，背后都是 PPT 里讲的一个真实概念。<br/>
-        这是<strong>"工业版字典"</strong>——以后看 paper、和算法工程师对暗号都用得上。
-      </p>
-
+      <h3>📖 游戏术语 ↔ 机器学习术语 · 全对照</h3>
+      <p class="lead">v4 新增：<strong>三池数据 + 高考一次性 + 自动网格搜索</strong>，对应 PPT 第 13 页课件原图。</p>
       <div class="category-grid">
 
-        <div class="category-card">
-          <div class="cat-title">🗺️ 数据准备 · PPT 超参数(1)</div>
+        <div class="category-card test">
+          <div class="cat-title">📊 数据三分 · PPT 第 13 页核心</div>
           <table class="mapping-table">
-            <thead><tr><th>装备</th><th>中文</th><th>英文 / 公式</th></tr></thead>
+            <thead><tr><th>池子</th><th>比喻</th><th>用途</th></tr></thead>
+            <tbody>
+              <tr><td>练习池 70%</td><td class="tech">平时练习</td><td class="eng">Training Set · 训练参数</td></tr>
+              <tr><td>模拟考池 15%</td><td class="tech">模拟考·可多碰</td><td class="eng">Validation · 调超参/早停</td></tr>
+              <tr><td>高考池 15%</td><td class="tech">高考·只能碰一次</td><td class="eng">Test · 最终评估</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="category-card gold">
+          <div class="cat-title">🤖 自动搜索 · v4 新增</div>
+          <table class="mapping-table">
+            <thead><tr><th>动作</th><th>中文</th><th>英文</th></tr></thead>
+            <tbody>
+              <tr><td>喵老板试 12 组</td><td class="tech">网格搜索</td><td class="eng">Grid Search</td></tr>
+              <tr><td>按模拟考损失排名</td><td class="tech">验证集调参</td><td class="eng">Validation-based Tuning</td></tr>
+              <tr><td>采用最优</td><td class="tech">选超参</td><td class="eng">Best Hyperparameters</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="category-card">
+          <div class="cat-title">🗺️ 数据准备</div>
+          <table class="mapping-table">
+            <thead><tr><th>装备</th><th>中文</th><th>英文</th></tr></thead>
             <tbody>
               <tr><td>鱼塘地图</td><td class="tech">特征工程</td><td class="eng">Feature Engineering</td></tr>
-              <tr><td>鱼群规模</td><td class="tech">训练数据量</td><td class="eng">Dataset Size N</td></tr>
-              <tr><td>水浑浊度</td><td class="tech">噪声强度</td><td class="eng">Noise σ</td></tr>
-              <tr><td>划测试鱼塘</td><td class="tech">训练/验证/测试拆分</td><td class="eng">Train/Test Split</td></tr>
+              <tr><td>鱼群规模</td><td class="tech">数据集大小</td><td class="eng">Dataset Size N</td></tr>
+              <tr><td>水浑浊度</td><td class="tech">噪声</td><td class="eng">Noise σ</td></tr>
               <tr><td>水中倒影</td><td class="tech">数据增强</td><td class="eng">Data Augmentation</td></tr>
             </tbody>
           </table>
         </div>
 
         <div class="category-card alt">
-          <div class="cat-title">🎣 模型设定 · PPT 超参数(2)</div>
+          <div class="cat-title">🎣 模型 + 训练</div>
           <table class="mapping-table">
-            <thead><tr><th>装备</th><th>中文</th><th>英文 / 公式</th></tr></thead>
+            <thead><tr><th>装备</th><th>中文</th><th>英文</th></tr></thead>
             <tbody>
-              <tr><td>鱼竿类型</td><td class="tech">算法选择</td><td class="eng">Algorithm</td></tr>
-              <tr><td>鱼竿节数 d</td><td class="tech">多项式次数 / 模型复杂度</td><td class="eng">Polynomial Degree</td></tr>
-              <tr><td>每节权重</td><td class="tech">模型参数</td><td class="eng">Weights θ / b₀…bₙ</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="category-card gold">
-          <div class="cat-title">⚙️ 模型训练 · PPT 超参数(3)</div>
-          <table class="mapping-table">
-            <thead><tr><th>装备</th><th>中文</th><th>英文 / 公式</th></tr></thead>
-            <tbody>
-              <tr><td>急性子程度</td><td class="tech">学习率</td><td class="eng">η · Learning Rate</td></tr>
+              <tr><td>鱼竿节数</td><td class="tech">多项式次数</td><td class="eng">Polynomial Degree</td></tr>
+              <tr><td>急性子</td><td class="tech">学习率</td><td class="eng">η · Learning Rate</td></tr>
               <tr><td>体力上限</td><td class="tech">最大训练周期</td><td class="eng">Max Epoch</td></tr>
-              <tr><td>早收工开关</td><td class="tech">早停</td><td class="eng">Early Stopping</td></tr>
+              <tr><td>早收工</td><td class="tech">早停</td><td class="eng">Early Stopping</td></tr>
               <tr><td>自动摸鱼</td><td class="tech">梯度下降</td><td class="eng">Gradient Descent</td></tr>
             </tbody>
           </table>
         </div>
 
-        <div class="category-card danger" style="border-color: rgba(198, 61, 61, 0.3)">
-          <div class="cat-title" style="background: linear-gradient(135deg, var(--danger), #a02d2d);">🛡️ 防过拟合 · PPT 红字</div>
+        <div class="category-card" style="border-color: rgba(198, 61, 61, 0.3)">
+          <div class="cat-title" style="background: linear-gradient(135deg, var(--danger), #a02d2d);">🛡️ 防过拟合</div>
           <table class="mapping-table">
-            <thead><tr><th>装备</th><th>中文</th><th>英文 / 公式</th></tr></thead>
+            <thead><tr><th>装备</th><th>中文</th><th>英文</th></tr></thead>
             <tbody>
               <tr><td>L1 参数管制</td><td class="tech">L1 正则化</td><td class="eng">Loss + λ·Σ|wᵢ|</td></tr>
               <tr><td>L2 参数管制</td><td class="tech">L2 正则化</td><td class="eng">Loss + λ·Σwᵢ²</td></tr>
-              <tr><td>Dropout 随机失活</td><td class="tech">随机失活</td><td class="eng">Dropout p</td></tr>
+              <tr><td>Dropout</td><td class="tech">随机失活</td><td class="eng">Dropout p</td></tr>
               <tr><td>早收工</td><td class="tech">早停</td><td class="eng">Early Stopping</td></tr>
-              <tr><td>水中倒影</td><td class="tech">数据增强</td><td class="eng">Data Augmentation</td></tr>
             </tbody>
           </table>
         </div>
 
         <div class="category-card purple">
-          <div class="cat-title">🎯 评估指标 · PPT 第 47-53 页</div>
+          <div class="cat-title">🎯 评估指标</div>
           <table class="mapping-table">
             <thead><tr><th>战绩</th><th>中文</th><th>公式</th></tr></thead>
             <tbody>
-              <tr><td>训练损失</td><td class="tech">MSE</td><td class="eng">(1/n)·Σ(ŷ−y)²</td></tr>
               <tr><td>钓中率</td><td class="tech">准确率</td><td class="eng">Correct / Total</td></tr>
               <tr><td>精确率</td><td class="tech">Precision</td><td class="eng">TP / (TP + FP)</td></tr>
               <tr><td>召回率</td><td class="tech">Recall</td><td class="eng">TP / (TP + FN)</td></tr>
@@ -997,103 +843,63 @@
           </table>
         </div>
 
-        <div class="category-card">
-          <div class="cat-title">📐 PPT 阶段小结表（第 12 页）</div>
-          <table class="mapping-table">
-            <thead><tr><th>任务</th><th>解决方案</th><th>行为主体</th></tr></thead>
-            <tbody>
-              <tr><td>训练参数</td><td class="tech">梯度下降</td><td class="eng">计算机</td></tr>
-              <tr><td>选择超参数</td><td class="tech">数据拆分</td><td class="eng">人类（你！）</td></tr>
-            </tbody>
-          </table>
-        </div>
-
       </div>
     </section>
 
     <p class="footer-note">
-      📐 想看不搞笑的理论版？<a href="classic.html" id="footerSwitch">回到原版教学 demo →</a><br/>
-      课程材料：MSAI 300 人工智能基础 · 第二讲 机器学习基础（58 页 PPT 严格对标）
+      📐 想看教学版？<a href="classic.html" id="footerSwitch">回到原版讲解 demo →</a><br/>
+      MSAI 300 人工智能基础 · 第二讲机器学习基础（58 页 PPT 严格对标）· v4
     </p>
   </div>
 
   <script>
-    // ===================================================================
-    // 全局状态
-    // ===================================================================
     const game = {
-      stage: 'config', // 'config' | 'fishing' | 'report'
+      stage: 'config',
       config: {
-        // 数据准备
-        dataShape: 'linear',
-        datasetSize: 14,
-        noiseLevel: 1.0,
-        testSplit: 0.3,
+        dataShape: 'linear', datasetSize: 20, noiseLevel: 1.0,
+        validationSplit: 0.15, testSplit: 0.15,
         dataAugmentation: false,
-        // 模型设定
-        modelType: 'polynomial',
-        polynomialDegree: 1,
-        // 训练
-        learningRate: 0.02,
-        maxEpoch: 1000,
-        earlyStopping: false,
-        // 防过拟合
-        l1Lambda: 0,
-        l2Lambda: 0,
-        dropoutP: 0,
-        // 评估
-        primaryMetric: 'mse',
-        hitThreshold: 1.5,
+        polynomialDegree: 1, learningRate: 0.02, maxEpoch: 1000, earlyStopping: false,
+        l1Lambda: 0, l2Lambda: 0, dropoutP: 0,
+        primaryMetric: 'mse', hitThreshold: 1.5,
       },
       runtime: {
-        weights: [],
-        trueWeights: [],
-        fish: [],
-        fishTest: [],
-        epoch: 0,
-        lossHistory: [],
-        valLossHistory: [],
-        isRunning: false,
-        earlyStopped: false,
-        bestValLoss: Infinity,
-        patienceCounter: 0,
-        animId: null,
-        lastLoss: 0,
-        lastTestLoss: 0,
+        weights: [], trueWeights: [],
+        fish: [], fishVal: [], fishTest: [],
+        epoch: 0, lossHistory: [], valLossHistory: [],
+        isRunning: false, earlyStopped: false,
+        bestValLoss: Infinity, patienceCounter: 0, animId: null,
+        lastLoss: 0, lastValLoss: 0,
+        testRevealed: false, testSnapshot: null,
       },
     };
 
-    // ===================================================================
-    // DOM 引用
-    // ===================================================================
     const pond = document.getElementById('pond');
     const pondCtx = pond.getContext('2d');
     const lossCanvas = document.getElementById('lossChart');
     const lossCtx = lossCanvas.getContext('2d');
 
     const ui = {
-      stages: {
-        config: document.getElementById('stageConfig'),
-        fishing: document.getElementById('stageFishing'),
-        report: document.getElementById('stageReport'),
-      },
-      steps: {
-        config: document.getElementById('step1'),
-        fishing: document.getElementById('step2'),
-        report: document.getElementById('step3'),
-      },
+      stages: { config: document.getElementById('stageConfig'), fishing: document.getElementById('stageFishing'), report: document.getElementById('stageReport') },
+      steps: { config: document.getElementById('step1'), fishing: document.getElementById('step2'), report: document.getElementById('step3') },
       meowSpeech: document.getElementById('meowSpeech'),
       meowHint: document.getElementById('meowHint'),
       goFishingBtn: document.getElementById('goFishingBtn'),
-      // fishing stage
+      autoSearchBtn: document.getElementById('autoSearchBtn'),
+      searchResults: document.getElementById('searchResults'),
+      searchProgress: document.getElementById('searchProgress'),
+      searchList: document.getElementById('searchList'),
+      segTrain: document.getElementById('segTrain'),
+      segVal: document.getElementById('segVal'),
+      segTest: document.getElementById('segTest'),
+      splitBar: document.getElementById('splitBar'),
       configSummary: document.getElementById('configSummary'),
       lossVal: document.getElementById('lossVal'),
-      lossPill: document.getElementById('lossPill'),
+      valLossVal: document.getElementById('valLossVal'),
       testLossVal: document.getElementById('testLossVal'),
+      lossPill: document.getElementById('lossPill'),
       epochVal: document.getElementById('epochVal'),
       epochHint: document.getElementById('epochHint'),
-      hitRate: document.getElementById('hitRate'),
-      hitHint: document.getElementById('hitHint'),
       liveF1: document.getElementById('liveF1'),
       autoBtn: document.getElementById('autoBtn'),
       stepBtn: document.getElementById('stepBtn'),
@@ -1105,103 +911,75 @@
       liveESToggle: document.getElementById('liveESToggle'),
       liveES: document.getElementById('liveES'),
       earlyStopMarker: document.getElementById('earlyStopMarker'),
-      // report
       verdictRank: document.getElementById('verdictRank'),
       verdictMsg: document.getElementById('verdictMsg'),
-      mAccuracy: document.getElementById('mAccuracy'),
-      mPrecision: document.getElementById('mPrecision'),
-      mRecall: document.getElementById('mRecall'),
-      mF1: document.getElementById('mF1'),
-      cmTP: document.getElementById('cmTP'),
-      cmFP: document.getElementById('cmFP'),
-      cmFN: document.getElementById('cmFN'),
-      cmTN: document.getElementById('cmTN'),
-      trainingLog: document.getElementById('trainingLog'),
       reportBackBtn: document.getElementById('reportBackBtn'),
       reportRestartBtn: document.getElementById('reportRestartBtn'),
+      tabVal: document.getElementById('tabVal'),
+      tabTest: document.getElementById('tabTest'),
+      tabContentVal: document.getElementById('tabContentVal'),
+      tabContentTest: document.getElementById('tabContentTest'),
+      testLockedWrap: document.getElementById('testLockedWrap'),
+      testResultsWrap: document.getElementById('testResultsWrap'),
+      revealTestBtn: document.getElementById('revealTestBtn'),
+      mvAccuracy: document.getElementById('mvAccuracy'),
+      mvPrecision: document.getElementById('mvPrecision'),
+      mvRecall: document.getElementById('mvRecall'),
+      mvF1: document.getElementById('mvF1'),
+      cmvTP: document.getElementById('cmvTP'),
+      cmvFP: document.getElementById('cmvFP'),
+      cmvFN: document.getElementById('cmvFN'),
+      cmvTN: document.getElementById('cmvTN'),
+      mtAccuracy: document.getElementById('mtAccuracy'),
+      mtPrecision: document.getElementById('mtPrecision'),
+      mtRecall: document.getElementById('mtRecall'),
+      mtF1: document.getElementById('mtF1'),
+      cmtTP: document.getElementById('cmtTP'),
+      cmtFP: document.getElementById('cmtFP'),
+      cmtFN: document.getElementById('cmtFN'),
+      cmtTN: document.getElementById('cmtTN'),
+      generalizationVerdict: document.getElementById('generalizationVerdict'),
+      trainingLog: document.getElementById('trainingLog'),
     };
 
-    // ===================================================================
-    // 文案
-    // ===================================================================
     const MEOW = {
-      config: [
-        '欢迎光临。先选装备再下水。',
-        '别全开"卷王"模式，会过拟合的。',
-        '建议新手先点"🌱 新手村"快速体验。',
-      ],
-      fishing: [
-        '出海了。看损失曲线吧。',
-        '记住：训练损失↓而测试损失↑ = 你正在过拟合。',
-        '随时可以暂停或调学习率。',
-      ],
-      report: [
-        '战绩出来了。看看四个指标的取舍。',
-        'F1 是水桶——精确率和召回率有一个低就全完。',
-        '想改装备？点底部按钮回渔具店。',
-      ],
-      overfitting: [
-        '测试损失在涨。这就是过拟合 PPT 第 19 页讲的。',
-        '试试开 L1/L2 或 Dropout，或者降低模型复杂度。',
-      ],
-      diverging: [
-        '损失爆炸了！学习率太大，鱼线在抽搐。',
-        '把急性子调回 0.02 试试。',
-      ],
-      earlyStopped: [
-        '🛑 早停触发。测试损失开始上升，赶在过拟合前收工。',
-        'PPT 装备清单里的"早停"就这么用。',
-      ],
-      converged: [
-        '收敛了。损失曲线不动了。',
-        '去看战绩吧。',
-      ],
+      config: ['先选装备，再下水。', '不会调？点上面"自动搜索"让我代你试 12 组。', '高考池被我锁了。'],
+      fishing: ['出海了。看曲线。', '橙=训练，紫虚=模拟考。分叉就是过拟合预警。'],
+      report: ['先看模拟考。', '准备好了点高考。只能点一次。'],
+      overfitting: ['模拟考损失在涨。过拟合了。', '开 L1/L2 或降复杂度。'],
+      diverging: ['损失爆炸！学习率太大。'],
+      earlyStopped: ['🛑 早停触发。'],
+      converged: ['收敛了。'],
+      testReveal: ['高考已公布。<strong>不能再改了</strong>。', '看下面"泛化能力诊断"。'],
     };
-
-    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-
-    function setMeow(bucket, opts = {}) {
-      const text = opts.fixed || pick(MEOW[bucket] || MEOW.fishing);
-      ui.meowSpeech.innerHTML = text;
+    function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+    function setMeow(b, o = {}) {
+      const t = o.fixed || pick(MEOW[b] || MEOW.fishing);
+      ui.meowSpeech.innerHTML = t;
       ui.meowSpeech.classList.remove('pop');
       void ui.meowSpeech.offsetWidth;
       ui.meowSpeech.classList.add('pop');
-      if (opts.hint) ui.meowHint.textContent = opts.hint;
+      if (o.hint) ui.meowHint.textContent = o.hint;
     }
 
-    // ===================================================================
-    // 阶段切换
-    // ===================================================================
     function setStage(name) {
       game.stage = name;
-      Object.entries(ui.stages).forEach(([k, el]) => {
-        el.classList.toggle('hidden', k !== name);
-      });
+      Object.entries(ui.stages).forEach(([k, el]) => el.classList.toggle('hidden', k !== name));
       Object.entries(ui.steps).forEach(([k, el]) => {
         el.classList.remove('active', 'done');
         if (k === name) el.classList.add('active');
       });
-      // 标记前面的为 done
       if (name === 'fishing') ui.steps.config.classList.add('done');
       if (name === 'report') {
         ui.steps.config.classList.add('done');
         ui.steps.fishing.classList.add('done');
       }
-      // 滚动到顶部
       window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      if (name === 'config') {
-        setMeow('config', { hint: 'step 1/3 · 渔具店配置中' });
-      } else if (name === 'fishing') {
-        setMeow('fishing', { hint: 'step 2/3 · 出海钓鱼' });
-      } else if (name === 'report') {
-        setMeow('report', { hint: 'step 3/3 · 战绩评定' });
-      }
+      if (name === 'config') setMeow('config', { hint: 'step 1/3 · 渔具店配置' });
+      else if (name === 'fishing') setMeow('fishing', { hint: 'step 2/3 · 出海钓鱼' });
+      else if (name === 'report') setMeow('report', { hint: 'step 3/3 · 战绩评定' });
     }
 
-    // ===================================================================
-    // 渔具店：配置 UI 绑定
-    // ===================================================================
     function bindOptionRow(row) {
       const key = row.dataset.key;
       row.addEventListener('click', e => {
@@ -1210,13 +988,12 @@
         [...row.children].forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         const val = btn.dataset.val;
-        // 自动类型转换
         let parsed = val;
         if (!isNaN(Number(val)) && val !== '') parsed = Number(val);
         game.config[key] = parsed;
-        // 更新数字显示
-        const disp = document.getElementById('cur-' + key);
-        if (disp) disp.textContent = val;
+        const d = document.getElementById('cur-' + key);
+        if (d) d.textContent = val;
+        updateSplitBar();
       });
     }
     document.querySelectorAll('.option-row').forEach(bindOptionRow);
@@ -1231,69 +1008,47 @@
     }
     document.querySelectorAll('.toggle-btn[data-key]').forEach(bindToggle);
 
-    // 预设
-    const PRESETS = {
-      newbie: {
-        dataShape: 'linear', datasetSize: 14, noiseLevel: 1.0, testSplit: 0.3,
-        dataAugmentation: false, polynomialDegree: 1, learningRate: 0.02,
-        maxEpoch: 1000, earlyStopping: false, l1Lambda: 0, l2Lambda: 0,
-        dropoutP: 0, primaryMetric: 'mse', hitThreshold: 1.5,
-      },
-      curve: {
-        dataShape: 'quadratic', datasetSize: 16, noiseLevel: 1.0, testSplit: 0.3,
-        dataAugmentation: false, polynomialDegree: 2, learningRate: 0.02,
-        maxEpoch: 1000, earlyStopping: false, l1Lambda: 0, l2Lambda: 0,
-        dropoutP: 0, primaryMetric: 'mse', hitThreshold: 1.5,
-      },
-      trap: {
-        dataShape: 'cubic', datasetSize: 14, noiseLevel: 1.4, testSplit: 0.3,
-        dataAugmentation: false, polynomialDegree: 15, learningRate: 0.02,
-        maxEpoch: 2000, earlyStopping: false, l1Lambda: 0, l2Lambda: 0,
-        dropoutP: 0, primaryMetric: 'f1', hitThreshold: 1.5,
-      },
-      defense: {
-        dataShape: 'cubic', datasetSize: 14, noiseLevel: 1.4, testSplit: 0.3,
-        dataAugmentation: true, polynomialDegree: 15, learningRate: 0.02,
-        maxEpoch: 2000, earlyStopping: true, l1Lambda: 0.1, l2Lambda: 0.1,
-        dropoutP: 0.3, primaryMetric: 'f1', hitThreshold: 1.5,
-      },
-    };
+    function updateSplitBar() {
+      const v = game.config.validationSplit;
+      const t = game.config.testSplit;
+      const trainPct = Math.round((1 - v - t) * 100);
+      ui.segTrain.textContent = `练习 ${trainPct}%`;
+      ui.segVal.textContent = `模考 ${Math.round(v * 100)}%`;
+      ui.segTest.textContent = `高考 ${Math.round(t * 100)}%`;
+      ui.splitBar.style.gridTemplateColumns = `${1 - v - t}fr ${v}fr ${t}fr`;
+    }
 
+    const PRESETS = {
+      newbie: { dataShape: 'linear', datasetSize: 20, noiseLevel: 1.0, validationSplit: 0.15, testSplit: 0.15, dataAugmentation: false, polynomialDegree: 1, learningRate: 0.02, maxEpoch: 1000, earlyStopping: false, l1Lambda: 0, l2Lambda: 0, dropoutP: 0, primaryMetric: 'mse', hitThreshold: 1.5 },
+      curve: { dataShape: 'quadratic', datasetSize: 20, noiseLevel: 1.0, validationSplit: 0.15, testSplit: 0.15, dataAugmentation: false, polynomialDegree: 2, learningRate: 0.02, maxEpoch: 1000, earlyStopping: false, l1Lambda: 0, l2Lambda: 0, dropoutP: 0, primaryMetric: 'mse', hitThreshold: 1.5 },
+      trap: { dataShape: 'cubic', datasetSize: 20, noiseLevel: 1.4, validationSplit: 0.15, testSplit: 0.15, dataAugmentation: false, polynomialDegree: 15, learningRate: 0.02, maxEpoch: 2000, earlyStopping: false, l1Lambda: 0, l2Lambda: 0, dropoutP: 0, primaryMetric: 'f1', hitThreshold: 1.5 },
+      defense: { dataShape: 'cubic', datasetSize: 20, noiseLevel: 1.4, validationSplit: 0.15, testSplit: 0.15, dataAugmentation: true, polynomialDegree: 15, learningRate: 0.02, maxEpoch: 2000, earlyStopping: true, l1Lambda: 0.1, l2Lambda: 0.1, dropoutP: 0.3, primaryMetric: 'f1', hitThreshold: 1.5 },
+    };
     document.querySelectorAll('.preset-bar button').forEach(btn => {
       btn.addEventListener('click', () => {
-        const preset = PRESETS[btn.dataset.preset];
-        if (!preset) return;
-        Object.assign(game.config, preset);
+        Object.assign(game.config, PRESETS[btn.dataset.preset]);
         syncConfigUI();
-        setMeow('config', {
-          fixed: `已加载预设：<strong>${btn.textContent}</strong>。点"出海钓鱼"看效果。`,
-        });
+        setMeow('config', { fixed: `已加载：<strong>${btn.textContent}</strong>。` });
       });
     });
 
     function syncConfigUI() {
-      // 同步所有 option-row 的 active 状态
       document.querySelectorAll('.option-row').forEach(row => {
         const key = row.dataset.key;
         const val = String(game.config[key]);
-        [...row.children].forEach(b => {
-          b.classList.toggle('active', b.dataset.val === val);
-        });
-        const disp = document.getElementById('cur-' + key);
-        if (disp) disp.textContent = val;
+        [...row.children].forEach(b => b.classList.toggle('active', b.dataset.val === val));
+        const d = document.getElementById('cur-' + key);
+        if (d) d.textContent = val;
       });
-      // 同步 toggles
       document.querySelectorAll('.toggle-btn[data-key]').forEach(btn => {
         const key = btn.dataset.key;
         const on = !!game.config[key];
         btn.classList.toggle('on', on);
         btn.querySelector('.label').textContent = on ? '开' : '关';
       });
+      updateSplitBar();
     }
 
-    // ===================================================================
-    // 数据生成
-    // ===================================================================
     const SHAPE_TRUE_WEIGHTS = {
       linear:    [1.4, 1.1],
       quadratic: [1.0, 0.6, -0.18],
@@ -1304,9 +1059,8 @@
       const cfg = game.config;
       const trueW = SHAPE_TRUE_WEIGHTS[cfg.dataShape] || SHAPE_TRUE_WEIGHTS.linear;
       game.runtime.trueWeights = [...trueW];
-
-      const all = [];
       const total = cfg.datasetSize;
+      const all = [];
       for (let i = 0; i < total; i++) {
         const x = -8 + (16 * i) / Math.max(total - 1, 1) + (Math.random() - 0.5) * 0.4;
         const noise = (Math.random() - 0.5) * 2 * cfg.noiseLevel;
@@ -1320,41 +1074,21 @@
           bob: Math.random() * Math.PI * 2,
         });
       }
-
-      // 数据增强：x 翻转生成镜像鱼
-      if (cfg.dataAugmentation) {
-        const augmented = all.map(f => ({
-          ...f,
-          x: -f.x,
-          color: '#5b9bd5',
-          isAug: true,
-          flip: !f.flip,
-          wiggle: Math.random() * Math.PI * 2,
-          bob: Math.random() * Math.PI * 2,
-        }));
-        all.push(...augmented);
-      }
-
-      // 随机洗牌
+      const augmented = cfg.dataAugmentation ? all.map(f => ({
+        ...f, x: -f.x, color: '#5b9bd5', isAug: true,
+        flip: !f.flip, wiggle: Math.random() * Math.PI * 2, bob: Math.random() * Math.PI * 2,
+      })) : [];
       for (let i = all.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [all[i], all[j]] = [all[j], all[i]];
       }
-
-      // 拆分训练 / 测试
-      if (cfg.testSplit > 0) {
-        const testCount = Math.max(2, Math.floor(all.length * cfg.testSplit));
-        game.runtime.fishTest = all.slice(0, testCount).map(f => ({ ...f, isTest: true, color: '#8a5cf6' }));
-        game.runtime.fish = all.slice(testCount);
-      } else {
-        game.runtime.fish = all;
-        game.runtime.fishTest = [];
-      }
+      const valCount = Math.max(2, Math.floor(all.length * cfg.validationSplit));
+      const testCount = Math.max(2, Math.floor(all.length * cfg.testSplit));
+      game.runtime.fishTest = all.slice(0, testCount).map(f => ({ ...f, isTest: true }));
+      game.runtime.fishVal = all.slice(testCount, testCount + valCount).map(f => ({ ...f, isVal: true, color: '#8a5cf6' }));
+      game.runtime.fish = all.slice(testCount + valCount).concat(augmented);
     }
 
-    // ===================================================================
-    // 模型 · 多项式 + L1/L2 + Dropout
-    // ===================================================================
     function predict(x, weights) {
       const w = weights || game.runtime.weights;
       let y = 0;
@@ -1362,10 +1096,10 @@
       return y;
     }
 
-    function computeLossAndGrad(fishSet) {
+    function computeLossAndGrad(fishSet, withReg, weightsOverride) {
       const set = fishSet || game.runtime.fish;
       const n = set.length;
-      const w = game.runtime.weights;
+      const w = weightsOverride || game.runtime.weights;
       if (n === 0) return { loss: 0, grads: new Array(w.length).fill(0), hits: 0, hitRate: 0 };
       const cfg = game.config;
       let lossSum = 0;
@@ -1378,41 +1112,40 @@
         for (let k = 0; k < w.length; k++) grads[k] += (2 / n) * err * Math.pow(f.x, k);
         if (Math.abs(err) < cfg.hitThreshold) hits++;
       }
-      // L1/L2 加到梯度（不算到展示损失里，保持 loss=MSE 的纯粹）
-      for (let k = 0; k < w.length; k++) {
-        if (cfg.l1Lambda > 0) grads[k] += cfg.l1Lambda * Math.sign(w[k]);
-        if (cfg.l2Lambda > 0) grads[k] += 2 * cfg.l2Lambda * w[k];
+      if (withReg) {
+        for (let k = 0; k < w.length; k++) {
+          if (cfg.l1Lambda > 0) grads[k] += cfg.l1Lambda * Math.sign(w[k]);
+          if (cfg.l2Lambda > 0) grads[k] += 2 * cfg.l2Lambda * w[k];
+        }
       }
       return { loss: lossSum / n, grads, hits, hitRate: hits / n };
     }
 
     function trainStep() {
       const cfg = game.config;
-      const { grads } = computeLossAndGrad();
+      const { grads } = computeLossAndGrad(game.runtime.fish, true);
       const clip = g => Math.max(-25, Math.min(25, g));
       for (let k = 0; k < game.runtime.weights.length; k++) {
-        // Dropout：随机让某些权重不更新（高次项更容易被 dropout）
         if (cfg.dropoutP > 0 && k > 0 && Math.random() < cfg.dropoutP) continue;
         const scale = k >= 4 ? Math.pow(0.5, k - 3) : 1;
         game.runtime.weights[k] -= cfg.learningRate * clip(grads[k]) * scale;
       }
       game.runtime.epoch += 1;
 
-      const snap = computeLossAndGrad();
-      game.runtime.lastLoss = snap.loss;
-      game.runtime.lossHistory.push(snap.loss);
+      const ts = computeLossAndGrad(game.runtime.fish, false);
+      game.runtime.lastLoss = ts.loss;
+      game.runtime.lossHistory.push(ts.loss);
       if (game.runtime.lossHistory.length > 500) game.runtime.lossHistory.shift();
 
-      if (game.runtime.fishTest.length > 0) {
-        const ts = computeLossAndGrad(game.runtime.fishTest);
-        game.runtime.lastTestLoss = ts.loss;
-        game.runtime.valLossHistory.push(ts.loss);
+      if (game.runtime.fishVal.length > 0) {
+        const vs = computeLossAndGrad(game.runtime.fishVal, false);
+        game.runtime.lastValLoss = vs.loss;
+        game.runtime.valLossHistory.push(vs.loss);
         if (game.runtime.valLossHistory.length > 500) game.runtime.valLossHistory.shift();
 
-        // Early stopping
         if (cfg.earlyStopping) {
-          if (ts.loss < game.runtime.bestValLoss - 0.001) {
-            game.runtime.bestValLoss = ts.loss;
+          if (vs.loss < game.runtime.bestValLoss - 0.001) {
+            game.runtime.bestValLoss = vs.loss;
             game.runtime.patienceCounter = 0;
           } else {
             game.runtime.patienceCounter++;
@@ -1425,11 +1158,9 @@
           }
         }
       }
-
-      // 达到 maxEpoch
       if (game.runtime.epoch >= cfg.maxEpoch) {
         stopAutoTraining(true);
-        setMeow('converged', { fixed: `达到体力上限 ${cfg.maxEpoch} epoch。去看战绩吧。` });
+        setMeow('converged', { fixed: `达到体力上限 ${cfg.maxEpoch} epoch。` });
       }
     }
 
@@ -1437,66 +1168,50 @@
       if (game.runtime.isRunning) return;
       game.runtime.isRunning = true;
       ui.autoBtn.textContent = '⏸ 暂停摸鱼';
-      ui.autoBtn.classList.remove('secondary');
-      ui.autoBtn.classList.add('primary');
+      ui.autoBtn.classList.remove('secondary'); ui.autoBtn.classList.add('primary');
       game.runtime.animId = requestAnimationFrame(autoLoop);
     }
-
     function stopAutoTraining(silent) {
       game.runtime.isRunning = false;
       ui.autoBtn.textContent = '▶ 继续摸鱼';
-      ui.autoBtn.classList.remove('primary');
-      ui.autoBtn.classList.add('secondary');
+      ui.autoBtn.classList.remove('primary'); ui.autoBtn.classList.add('secondary');
       cancelAnimationFrame(game.runtime.animId);
-      if (!silent) setMeow('fishing', { fixed: '暂停了。慢慢看吧。' });
+      if (!silent) setMeow('fishing', { fixed: '暂停了。' });
     }
-
     function autoLoop() {
       if (!game.runtime.isRunning) return;
       for (let i = 0; i < 2; i++) trainStep();
       if (!game.runtime.isRunning) return;
       drawLossChart();
       updateLiveStats();
-
-      // 文案触发
       if (game.runtime.epoch % 60 === 0 && game.runtime.valLossHistory.length > 40) {
-        const trainNow = game.runtime.lastLoss;
-        const testNow = game.runtime.lastTestLoss;
-        const trainEarly = game.runtime.lossHistory[Math.max(0, game.runtime.lossHistory.length - 40)];
-        const testEarly = game.runtime.valLossHistory[Math.max(0, game.runtime.valLossHistory.length - 40)];
-        if (trainNow < trainEarly * 0.6 && testNow > testEarly * 1.15) {
-          setMeow('overfitting');
-        }
+        const tn = game.runtime.lastLoss, vn = game.runtime.lastValLoss;
+        const te = game.runtime.lossHistory[Math.max(0, game.runtime.lossHistory.length - 40)];
+        const ve = game.runtime.valLossHistory[Math.max(0, game.runtime.valLossHistory.length - 40)];
+        if (tn < te * 0.6 && vn > ve * 1.15) setMeow('overfitting');
       }
       if (game.runtime.lastLoss > 100) {
         stopAutoTraining(true);
         setMeow('diverging');
         return;
       }
-
       game.runtime.animId = requestAnimationFrame(autoLoop);
     }
 
-    // ===================================================================
-    // 渲染
-    // ===================================================================
     function computeViewport() {
       const xMin = -9, xMax = 9;
-      const all = game.runtime.fish.concat(game.runtime.fishTest);
-      const ys = all.map(f => f.y);
+      const allYs = game.runtime.fish.concat(game.runtime.fishVal, game.runtime.fishTest).map(f => f.y);
       for (let i = 0; i <= 20; i++) {
         const x = xMin + (xMax - xMin) * i / 20;
         let yt = 0;
         for (let k = 0; k < game.runtime.trueWeights.length; k++) yt += game.runtime.trueWeights[k] * Math.pow(x, k);
-        ys.push(yt);
-        ys.push(predict(x, game.runtime.weights));
+        allYs.push(yt);
+        allYs.push(predict(x));
       }
-      let yMin = Math.min(...ys) - 2;
-      let yMax = Math.max(...ys) + 2;
-      // 钳制范围避免高次多项式炸图
+      let yMin = Math.min(...allYs) - 2, yMax = Math.max(...allYs) + 2;
       if (yMax - yMin > 60) {
-        const center = (yMin + yMax) / 2;
-        yMin = center - 30; yMax = center + 30;
+        const c = (yMin + yMax) / 2;
+        yMin = c - 30; yMax = c + 30;
       }
       return { xMin, xMax, yMin, yMax };
     }
@@ -1509,7 +1224,6 @@
       const mapX = x => padX + ((x - xMin) / (xMax - xMin)) * (w - padX * 2);
       const mapY = y => h - padY - ((y - yMin) / (yMax - yMin)) * (h - padY * 2);
 
-      // 水面光斑
       const t = performance.now() / 1200;
       pondCtx.fillStyle = 'rgba(255, 255, 255, 0.06)';
       for (let i = 0; i < 6; i++) {
@@ -1519,8 +1233,6 @@
         pondCtx.ellipse(cx, cy, 60, 4, 0, 0, Math.PI * 2);
         pondCtx.fill();
       }
-
-      // 网格
       pondCtx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
       pondCtx.lineWidth = 1;
       pondCtx.beginPath();
@@ -1528,35 +1240,28 @@
       for (let i = 0; i <= 4; i++) { const y = padY + ((h - padY * 2) * i) / 4; pondCtx.moveTo(padX, y); pondCtx.lineTo(w - padX, y); }
       pondCtx.stroke();
 
-      // 误差虚线（训练鱼）
       for (const f of game.runtime.fish) {
         const px = mapX(f.x), py = mapY(f.y);
-        const yhat = predict(f.x);
-        const pyHat = mapY(yhat);
-        const isHit = Math.abs(yhat - f.y) < game.config.hitThreshold;
+        const pyHat = mapY(predict(f.x));
+        const isHit = Math.abs(predict(f.x) - f.y) < game.config.hitThreshold;
         pondCtx.strokeStyle = isHit ? 'rgba(255, 255, 255, 0.85)' : 'rgba(255, 220, 220, 0.55)';
         pondCtx.setLineDash([3, 3]); pondCtx.lineWidth = 1.4;
         pondCtx.beginPath(); pondCtx.moveTo(px, py); pondCtx.lineTo(px, pyHat); pondCtx.stroke();
       }
-      // 误差虚线（测试鱼）
-      for (const f of game.runtime.fishTest) {
+      for (const f of game.runtime.fishVal) {
         const px = mapX(f.x), py = mapY(f.y);
-        const yhat = predict(f.x);
-        const pyHat = mapY(yhat);
-        const isHit = Math.abs(yhat - f.y) < game.config.hitThreshold;
-        pondCtx.strokeStyle = isHit ? 'rgba(196, 181, 253, 0.85)' : 'rgba(196, 181, 253, 0.45)';
+        const pyHat = mapY(predict(f.x));
+        pondCtx.strokeStyle = 'rgba(196, 181, 253, 0.6)';
         pondCtx.setLineDash([2, 4]); pondCtx.lineWidth = 1.2;
         pondCtx.beginPath(); pondCtx.moveTo(px, py); pondCtx.lineTo(px, pyHat); pondCtx.stroke();
       }
       pondCtx.setLineDash([]);
 
-      // 上帝答案（真实曲线）
       pondCtx.strokeStyle = 'rgba(255, 255, 255, 0.32)';
       pondCtx.lineWidth = 2; pondCtx.setLineDash([8, 6]);
       drawPolynomial(pondCtx, game.runtime.trueWeights, xMin, xMax, mapX, mapY);
       pondCtx.setLineDash([]);
 
-      // 用户鱼线
       pondCtx.strokeStyle = '#b44f2d';
       pondCtx.lineWidth = 4;
       pondCtx.shadowColor = 'rgba(180, 79, 45, 0.35)';
@@ -1564,34 +1269,37 @@
       drawPolynomial(pondCtx, game.runtime.weights, xMin, xMax, mapX, mapY);
       pondCtx.shadowBlur = 0;
 
-      // 鱼
       const tt = performance.now() / 600;
       for (const f of game.runtime.fish) {
         const px = mapX(f.x);
         const py = mapY(f.y) + Math.sin(tt + f.bob) * 2.2;
         const isHit = Math.abs(predict(f.x) - f.y) < game.config.hitThreshold;
-        drawFish(pondCtx, px, py, isHit, f.color, f.flip, tt + f.wiggle, false, f.isAug);
+        drawFish(pondCtx, px, py, isHit, f.color, f.flip, tt + f.wiggle, 'train', f.isAug, false);
+      }
+      for (const f of game.runtime.fishVal) {
+        const px = mapX(f.x);
+        const py = mapY(f.y) + Math.sin(tt + f.bob) * 2.2;
+        const isHit = Math.abs(predict(f.x) - f.y) < game.config.hitThreshold;
+        drawFish(pondCtx, px, py, isHit, '#8a5cf6', f.flip, tt + f.wiggle, 'val', false, false);
       }
       for (const f of game.runtime.fishTest) {
         const px = mapX(f.x);
         const py = mapY(f.y) + Math.sin(tt + f.bob) * 2.2;
         const isHit = Math.abs(predict(f.x) - f.y) < game.config.hitThreshold;
-        drawFish(pondCtx, px, py, isHit, f.color, f.flip, tt + f.wiggle, true, false);
+        drawFish(pondCtx, px, py, isHit, '#dc2f5b', f.flip, tt + f.wiggle, 'test', false, !game.runtime.testRevealed);
       }
 
       drawCatAndRod(pondCtx, w, h, mapX, mapY, xMin);
 
       pondCtx.fillStyle = 'rgba(255, 255, 255, 0.7)';
       pondCtx.font = '11px "Segoe UI", "PingFang SC"';
-      pondCtx.fillText('🌊 鱼塘横向位置 x', padX, h - 16);
-      pondCtx.save();
-      pondCtx.translate(20, h / 2);
-      pondCtx.rotate(-Math.PI / 2);
-      pondCtx.fillText('🐟 鱼的深度 y', -40, 0);
+      pondCtx.fillText('🌊 x', padX, h - 16);
+      pondCtx.save(); pondCtx.translate(20, h / 2); pondCtx.rotate(-Math.PI / 2);
+      pondCtx.fillText('🐟 y', -10, 0);
       pondCtx.restore();
-      pondCtx.fillStyle = 'rgba(255, 255, 255, 0.42)';
+      pondCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
       pondCtx.font = '11px ui-monospace, "SF Mono", Menlo';
-      pondCtx.fillText('白虚线 = 真实分布 / 紫色 = 测试鱼 / 蓝色 = 数据增强鱼', w - 380, padY + 14);
+      pondCtx.fillText('🟧训练 🟪验证(V) 🔴测试(?锁)', w - 280, padY + 14);
     }
 
     function drawPolynomial(ctx, weights, xMin, xMax, mapX, mapY) {
@@ -1607,23 +1315,38 @@
       ctx.stroke();
     }
 
-    function drawFish(ctx, x, y, isHit, color, flip, phase, isTest, isAug) {
+    function drawFish(ctx, x, y, isHit, color, flip, phase, kind, isAug, hidden) {
       ctx.save();
       ctx.translate(x, y);
       if (flip) ctx.scale(-1, 1);
       const wiggle = Math.sin(phase) * 4;
+
+      if (hidden) {
+        ctx.globalAlpha = 0.55;
+        ctx.fillStyle = '#9ca3af';
+        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2);
+        ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 14px serif';
+        ctx.fillText('?', -4, 5);
+        ctx.restore();
+        return;
+      }
+
       ctx.fillStyle = isHit ? '#ffd166' : color;
-      ctx.strokeStyle = isTest ? 'rgba(138, 92, 246, 0.7)' : (isAug ? 'rgba(91, 155, 213, 0.7)' : 'rgba(0,0,0,0.25)');
-      ctx.lineWidth = (isTest || isAug) ? 1.8 : 1.2;
-      ctx.beginPath();
-      ctx.ellipse(0, 0, 14, 8, 0, 0, Math.PI * 2);
+      let strokeColor = 'rgba(0,0,0,0.25)';
+      if (kind === 'val') strokeColor = 'rgba(138, 92, 246, 0.7)';
+      if (kind === 'test') strokeColor = 'rgba(220, 47, 91, 0.85)';
+      if (isAug) strokeColor = 'rgba(91, 155, 213, 0.7)';
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = (kind === 'val' || kind === 'test' || isAug) ? 1.8 : 1.2;
+      ctx.beginPath(); ctx.ellipse(0, 0, 14, 8, 0, 0, Math.PI * 2);
       ctx.fill(); ctx.stroke();
       ctx.beginPath();
-      ctx.moveTo(-14, 0);
-      ctx.lineTo(-22, -7 + wiggle);
-      ctx.lineTo(-22, 7 + wiggle);
-      ctx.closePath();
-      ctx.fill(); ctx.stroke();
+      ctx.moveTo(-14, 0); ctx.lineTo(-22, -7 + wiggle); ctx.lineTo(-22, 7 + wiggle);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
       ctx.fillStyle = '#fff';
       ctx.beginPath(); ctx.arc(7, -2, 2.4, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#1e1b16';
@@ -1632,8 +1355,12 @@
         ctx.fillStyle = '#fffbef'; ctx.font = 'bold 12px serif';
         ctx.fillText('✨', 4, -10);
       }
-      if (isTest) {
-        ctx.fillStyle = 'rgba(138, 92, 246, 0.9)';
+      if (kind === 'val') {
+        ctx.fillStyle = 'rgba(138, 92, 246, 0.95)';
+        ctx.font = 'bold 10px serif'; ctx.fillText('V', -2, 18);
+      }
+      if (kind === 'test') {
+        ctx.fillStyle = 'rgba(220, 47, 91, 0.95)';
         ctx.font = 'bold 10px serif'; ctx.fillText('T', -2, 18);
       }
       if (isAug) {
@@ -1645,17 +1372,11 @@
 
     function drawCatAndRod(ctx, w, h, mapX, mapY, xMin) {
       const cx = 50, cy = h - 60;
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
-      ctx.beginPath();
-      ctx.ellipse(cx, cy + 30, 30, 5, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#fff5e1';
-      ctx.strokeStyle = '#62594e';
-      ctx.lineWidth = 1.6;
-      ctx.beginPath(); ctx.ellipse(cx, cy + 5, 22, 25, 0, 0, Math.PI * 2);
-      ctx.fill(); ctx.stroke();
-      ctx.beginPath(); ctx.arc(cx, cy - 18, 16, 0, Math.PI * 2);
-      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = 'rgba(0,0,0,0.18)';
+      ctx.beginPath(); ctx.ellipse(cx, cy + 30, 30, 5, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff5e1'; ctx.strokeStyle = '#62594e'; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.ellipse(cx, cy + 5, 22, 25, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy - 18, 16, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
       ctx.beginPath();
       ctx.moveTo(cx - 13, cy - 28); ctx.lineTo(cx - 5, cy - 38); ctx.lineTo(cx - 2, cy - 28);
       ctx.closePath(); ctx.fill(); ctx.stroke();
@@ -1665,20 +1386,13 @@
       ctx.fillStyle = '#1e1b16';
       ctx.beginPath(); ctx.arc(cx - 5, cy - 19, 1.8, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.arc(cx + 5, cy - 19, 1.8, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = '#62594e'; ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - 14); ctx.lineTo(cx - 2, cy - 11);
-      ctx.moveTo(cx, cy - 14); ctx.lineTo(cx + 2, cy - 11);
-      ctx.stroke();
       ctx.strokeStyle = '#62594e'; ctx.lineWidth = 2.5;
       ctx.beginPath();
-      ctx.moveTo(cx + 12, cy - 12); ctx.lineTo(cx + 60, cy - 55);
-      ctx.stroke();
+      ctx.moveTo(cx + 12, cy - 12); ctx.lineTo(cx + 60, cy - 55); ctx.stroke();
       ctx.strokeStyle = '#b44f2d'; ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(cx + 12, cy - 12); ctx.lineTo(cx + 22, cy - 20);
-      ctx.stroke();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+      ctx.moveTo(cx + 12, cy - 12); ctx.lineTo(cx + 22, cy - 20); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,0.55)';
       ctx.lineWidth = 1; ctx.setLineDash([2, 3]);
       ctx.beginPath();
       ctx.moveTo(cx + 60, cy - 55);
@@ -1693,10 +1407,10 @@
       const w = lossCanvas.width, h = lossCanvas.height;
       lossCtx.clearRect(0, 0, w, h);
       const train = game.runtime.lossHistory;
-      const test = game.runtime.valLossHistory;
+      const val = game.runtime.valLossHistory;
       if (train.length === 0) return;
       const xMax = Math.max(train.length - 1, 1);
-      const allVals = train.concat(test, [1]);
+      const allVals = train.concat(val, [1]);
       const yMax = Math.min(Math.max(...allVals) * 1.05, 100);
       const padX = 40, padY = 22;
       const mapX = x => padX + (x / xMax) * (w - padX * 2);
@@ -1709,7 +1423,6 @@
         lossCtx.moveTo(padX, y); lossCtx.lineTo(w - padX, y);
       }
       lossCtx.stroke();
-      // 训练
       lossCtx.strokeStyle = '#b44f2d';
       lossCtx.lineWidth = 2.5;
       lossCtx.beginPath();
@@ -1718,18 +1431,30 @@
         if (i === 0) lossCtx.moveTo(px, py); else lossCtx.lineTo(px, py);
       });
       lossCtx.stroke();
-      // 测试
-      if (test.length > 0) {
+      if (val.length > 0) {
         lossCtx.strokeStyle = '#8a5cf6';
         lossCtx.lineWidth = 2;
         lossCtx.setLineDash([5, 4]);
         lossCtx.beginPath();
-        test.forEach((v, i) => {
+        val.forEach((v, i) => {
           const px = mapX(i), py = mapY(Math.min(v, yMax));
           if (i === 0) lossCtx.moveTo(px, py); else lossCtx.lineTo(px, py);
         });
         lossCtx.stroke();
         lossCtx.setLineDash([]);
+      }
+      if (game.runtime.testRevealed && game.runtime.testSnapshot) {
+        const tl = game.runtime.testSnapshot.testLoss;
+        lossCtx.fillStyle = '#dc2f5b';
+        lossCtx.strokeStyle = '#dc2f5b';
+        lossCtx.lineWidth = 2;
+        lossCtx.beginPath();
+        lossCtx.arc(mapX(train.length - 1), mapY(Math.min(tl, yMax)), 8, 0, Math.PI * 2);
+        lossCtx.stroke();
+        lossCtx.fill();
+        lossCtx.fillStyle = '#fff';
+        lossCtx.font = 'bold 10px serif';
+        lossCtx.fillText('T', mapX(train.length - 1) - 3, mapY(Math.min(tl, yMax)) + 3);
       }
       lossCtx.fillStyle = '#62594e';
       lossCtx.font = '11px "Segoe UI", "PingFang SC"';
@@ -1738,16 +1463,12 @@
       lossCtx.fillText(`第 ${train.length - 1} 天`, w - padX - 60, h - 6);
     }
 
-    // ===================================================================
-    // 指标计算（分类指标 · 把回归问题阈值化为二分类）
-    // ===================================================================
-    function computeClassificationMetrics(fishSet) {
-      const set = fishSet || game.runtime.fish;
-      // 实际标签：y > 0.5 = 该钓的(1), 否则放走(0)
-      // 预测：模型对此 x 的 ŷ > 0.5 = 预测要钓
+    function computeClassificationMetrics(fishSet, weightsOverride) {
+      const set = fishSet || game.runtime.fishVal;
+      const w = weightsOverride || game.runtime.weights;
       let TP = 0, FP = 0, FN = 0, TN = 0;
       for (const f of set) {
-        const yhat = predict(f.x);
+        const yhat = predict(f.x, w);
         const actual = f.y > 0.5 ? 1 : 0;
         const predicted = yhat > 0.5 ? 1 : 0;
         if (actual === 1 && predicted === 1) TP++;
@@ -1765,21 +1486,16 @@
 
     function updateLiveStats() {
       const cfg = game.config;
-      const trainSnap = computeLossAndGrad();
-      const testSnap = game.runtime.fishTest.length > 0 ? computeLossAndGrad(game.runtime.fishTest) : null;
-
-      ui.lossVal.textContent = trainSnap.loss.toFixed(2);
-      ui.testLossVal.textContent = testSnap ? testSnap.loss.toFixed(2) : '—';
+      const ts = computeLossAndGrad(game.runtime.fish, false);
+      ui.lossVal.textContent = ts.loss.toFixed(2);
       ui.epochVal.textContent = game.runtime.epoch;
       ui.epochHint.textContent = `/上限 ${cfg.maxEpoch}`;
-      ui.hitRate.textContent = Math.round(trainSnap.hitRate * 100) + '%';
-      ui.hitHint.textContent = `accuracy @ ε=${cfg.hitThreshold}`;
-
-      const cm = computeClassificationMetrics();
+      ui.valLossVal.textContent = game.runtime.fishVal.length > 0 ? computeLossAndGrad(game.runtime.fishVal, false).loss.toFixed(2) : '—';
+      ui.testLossVal.textContent = game.runtime.testRevealed ? game.runtime.testSnapshot.testLoss.toFixed(2) : '🔒';
+      const cm = computeClassificationMetrics(game.runtime.fishVal);
       ui.liveF1.textContent = cm.f1.toFixed(2);
-
       const pills = ['🆘 翻车', '😩 一般般', '😐 还可以', '✨ 优秀', '🏆 CTO级'];
-      const loss = trainSnap.loss;
+      const loss = ts.loss;
       let pi = 0;
       if (loss < 0.5) pi = 4;
       else if (loss < 1.5) pi = 3;
@@ -1791,27 +1507,17 @@
     function renderConfigSummary() {
       const cfg = game.config;
       const items = [
-        ['地图', cfg.dataShape === 'linear' ? '直线' : (cfg.dataShape === 'quadratic' ? '二次' : '三次')],
-        ['鱼数', cfg.datasetSize],
-        ['噪声', cfg.noiseLevel],
-        ['测试%', (cfg.testSplit * 100) + '%'],
-        ['数据增强', cfg.dataAugmentation ? '✓' : '✗'],
-        ['竿节数', cfg.polynomialDegree],
-        ['学习率', cfg.learningRate],
-        ['最大 epoch', cfg.maxEpoch],
-        ['早停', cfg.earlyStopping ? '✓' : '✗'],
-        ['L1 λ', cfg.l1Lambda],
-        ['L2 λ', cfg.l2Lambda],
-        ['Dropout', cfg.dropoutP],
+        ['地图', cfg.dataShape], ['鱼数', cfg.datasetSize], ['噪声', cfg.noiseLevel],
+        ['训练池', `${Math.round((1 - cfg.validationSplit - cfg.testSplit) * 100)}%`],
+        ['模拟考', `${Math.round(cfg.validationSplit * 100)}%`],
+        ['高考', `${Math.round(cfg.testSplit * 100)}%`],
+        ['竿节数', cfg.polynomialDegree], ['η', cfg.learningRate], ['epoch', cfg.maxEpoch],
+        ['L1', cfg.l1Lambda], ['L2', cfg.l2Lambda], ['Dropout', cfg.dropoutP],
       ];
       ui.configSummary.innerHTML = items.map(([k, v]) => `<div><span>${k}：</span><strong>${v}</strong></div>`).join('');
     }
 
-    // ===================================================================
-    // 阶段流转
-    // ===================================================================
     function startFishing() {
-      // 根据配置初始化
       buildDataset();
       const d = game.config.polynomialDegree;
       game.runtime.weights = new Array(d + 1).fill(0).map(() => (Math.random() - 0.5) * 0.6);
@@ -1821,66 +1527,205 @@
       game.runtime.earlyStopped = false;
       game.runtime.bestValLoss = Infinity;
       game.runtime.patienceCounter = 0;
+      game.runtime.testRevealed = false;
+      game.runtime.testSnapshot = null;
       ui.earlyStopMarker.style.display = 'none';
+      // 重置 reveal UI
+      ui.testLockedWrap.style.display = '';
+      ui.testResultsWrap.style.display = 'none';
+      ui.revealTestBtn.disabled = false;
+      ui.revealTestBtn.textContent = '📢 公布高考成绩（只能点一次！）';
 
       setStage('fishing');
       renderConfigSummary();
       ui.liveLRSlider.value = game.config.learningRate;
       ui.liveLR.textContent = game.config.learningRate.toFixed(3);
       ui.liveES.textContent = game.config.earlyStopping ? '开' : '关';
-
       drawLossChart();
       updateLiveStats();
-
-      // 自动开始
       setTimeout(() => startAutoTraining(), 300);
     }
 
     function showReport() {
       stopAutoTraining(true);
       setStage('report');
-      const cm = computeClassificationMetrics();
-      ui.mAccuracy.textContent = cm.accuracy.toFixed(2);
-      ui.mPrecision.textContent = cm.precision.toFixed(2);
-      ui.mRecall.textContent = cm.recall.toFixed(2);
-      ui.mF1.textContent = cm.f1.toFixed(2);
-      ui.cmTP.textContent = cm.TP;
-      ui.cmFP.textContent = cm.FP;
-      ui.cmFN.textContent = cm.FN;
-      ui.cmTN.textContent = cm.TN;
-
-      // 段位 + 评语
-      let rank = '实习生', msg = '老板看着你的工作量报告，缓缓点了点头。';
+      switchTab('val');
+      renderValReport();
+      const cm = computeClassificationMetrics(game.runtime.fishVal);
+      let rank = '实习生', msg = '点 Tab 看模拟考成绩 / 高考成绩。';
       const m = game.config.primaryMetric === 'mse'
-        ? Math.max(0, 1 - game.runtime.lastLoss / 10)
-        : (game.config.primaryMetric === 'f1' ? cm.f1 : (cm[game.config.primaryMetric] || cm.accuracy));
-      if (m > 0.92) { rank = '🏆 CTO 喵'; msg = '完美收工。你已经是渔具店的传奇。'; }
-      else if (m > 0.82) { rank = '✨ P8 高级喵'; msg = '战绩优秀。可以去给算法工程师上课了。'; }
-      else if (m > 0.7) { rank = '高级钓鱼师'; msg = '稳。年终评级 A-。'; }
-      else if (m > 0.55) { rank = '初级钓鱼师'; msg = '一般水平，但及格了。'; }
-      else if (m > 0.4) { rank = '正式员工'; msg = '勉强能交差，建议改装备再来一把。'; }
-      else { rank = '摸鱼候选人'; msg = '兄弟，配置有问题。回渔具店重新选。'; }
+        ? Math.max(0, 1 - game.runtime.lastValLoss / 10)
+        : (cm[game.config.primaryMetric] || cm.f1);
+      if (m > 0.92) { rank = '🏆 CTO 喵'; msg = '模拟考完美。敢公布高考吗？'; }
+      else if (m > 0.82) { rank = '✨ P8 高级喵'; msg = '模拟考优秀。'; }
+      else if (m > 0.7) { rank = '高级钓鱼师'; msg = '稳。'; }
+      else if (m > 0.55) { rank = '初级钓鱼师'; msg = '及格。'; }
+      else if (m > 0.4) { rank = '正式员工'; msg = '勉强。'; }
+      else { rank = '摸鱼候选人'; msg = '回渔具店重选吧。'; }
       ui.verdictRank.textContent = rank;
       ui.verdictMsg.innerHTML = msg;
-
-      // 训练记录
       const log = [
-        `数据：${game.config.dataShape} · ${game.config.datasetSize} 条 · 噪声 ${game.config.noiseLevel}`,
-        `模型：多项式 ${game.config.polynomialDegree} 次`,
-        `训练：η=${game.config.learningRate}, 跑了 ${game.runtime.epoch} epoch${game.runtime.earlyStopped ? '（早停触发）' : ''}`,
-        `防过拟合：L1=${game.config.l1Lambda}, L2=${game.config.l2Lambda}, Dropout=${game.config.dropoutP}, 数据增强=${game.config.dataAugmentation ? '✓' : '✗'}`,
-        `最终训练损失 MSE = ${game.runtime.lastLoss.toFixed(3)}`,
-        game.runtime.fishTest.length > 0 ? `最终测试损失 MSE = ${game.runtime.lastTestLoss.toFixed(3)}` : '（没有测试集）',
-        `分类性能：Accuracy=${cm.accuracy.toFixed(2)}, Precision=${cm.precision.toFixed(2)}, Recall=${cm.recall.toFixed(2)}, F1=${cm.f1.toFixed(2)}`,
+        `数据：${game.config.dataShape} · ${game.config.datasetSize} 条`,
+        `三分：训练 ${Math.round((1 - game.config.validationSplit - game.config.testSplit) * 100)}% / 模拟考 ${Math.round(game.config.validationSplit * 100)}% / 高考 ${Math.round(game.config.testSplit * 100)}%`,
+        `模型：多项式 ${game.config.polynomialDegree} 次, η=${game.config.learningRate}`,
+        `跑了 ${game.runtime.epoch} epoch${game.runtime.earlyStopped ? '（早停触发）' : ''}`,
+        `防过拟合：L1=${game.config.l1Lambda}, L2=${game.config.l2Lambda}, Dropout=${game.config.dropoutP}`,
+        `最终训练损失 = ${game.runtime.lastLoss.toFixed(3)}`,
+        `最终模拟考损失 = ${game.runtime.lastValLoss.toFixed(3)}`,
       ];
       ui.trainingLog.innerHTML = log.map(l => `▸ ${l}`).join('<br/>');
     }
 
-    // ===================================================================
-    // 事件
-    // ===================================================================
-    ui.goFishingBtn.addEventListener('click', startFishing);
+    function renderValReport() {
+      const cm = computeClassificationMetrics(game.runtime.fishVal);
+      ui.mvAccuracy.textContent = cm.accuracy.toFixed(2);
+      ui.mvPrecision.textContent = cm.precision.toFixed(2);
+      ui.mvRecall.textContent = cm.recall.toFixed(2);
+      ui.mvF1.textContent = cm.f1.toFixed(2);
+      ui.cmvTP.textContent = cm.TP; ui.cmvFP.textContent = cm.FP;
+      ui.cmvFN.textContent = cm.FN; ui.cmvTN.textContent = cm.TN;
+    }
 
+    function revealTest() {
+      if (game.runtime.testRevealed) return;
+      const snapshotW = [...game.runtime.weights];
+      const testCm = computeClassificationMetrics(game.runtime.fishTest, snapshotW);
+      let s = 0;
+      const n = game.runtime.fishTest.length;
+      if (n > 0) {
+        for (const f of game.runtime.fishTest) {
+          const err = predict(f.x, snapshotW) - f.y;
+          s += err * err;
+        }
+      }
+      const testLoss = n > 0 ? s / n : 0;
+      game.runtime.testSnapshot = { weights: snapshotW, testLoss, cm: testCm };
+      game.runtime.testRevealed = true;
+
+      ui.testLockedWrap.style.display = 'none';
+      ui.testResultsWrap.style.display = '';
+      ui.mtAccuracy.textContent = testCm.accuracy.toFixed(2);
+      ui.mtPrecision.textContent = testCm.precision.toFixed(2);
+      ui.mtRecall.textContent = testCm.recall.toFixed(2);
+      ui.mtF1.textContent = testCm.f1.toFixed(2);
+      ui.cmtTP.textContent = testCm.TP; ui.cmtFP.textContent = testCm.FP;
+      ui.cmtFN.textContent = testCm.FN; ui.cmtTN.textContent = testCm.TN;
+
+      const vL = game.runtime.lastValLoss;
+      const diff = testLoss - vL;
+      let dg = '';
+      if (Math.abs(diff) < 0.5) {
+        dg = `✅ <strong>泛化良好</strong>。高考 ${testLoss.toFixed(2)} ≈ 模拟考 ${vL.toFixed(2)}，模型稳定。`;
+      } else if (diff > 0.5) {
+        dg = `⚠️ <strong>泛化下降</strong>。高考 ${testLoss.toFixed(2)} > 模拟考 ${vL.toFixed(2)}（差 ${diff.toFixed(2)}）。说明你在调超参时<strong>过拟合到了模拟考池</strong>——这就是 PPT 强调"测试集只能碰一次"的原因。`;
+      } else {
+        dg = `😯 <strong>高考反而更好</strong>。运气好，或模拟考池太难。`;
+      }
+      ui.generalizationVerdict.innerHTML = dg;
+
+      ui.revealTestBtn.disabled = true;
+      ui.revealTestBtn.textContent = '✅ 已公布（不可重新公布）';
+      setMeow('testReveal');
+    }
+
+    function switchTab(which) {
+      ui.tabVal.classList.toggle('active', which === 'val');
+      ui.tabTest.classList.toggle('active', which === 'test');
+      ui.tabContentVal.style.display = which === 'val' ? '' : 'none';
+      ui.tabContentTest.style.display = which === 'test' ? '' : 'none';
+    }
+
+    const SEARCH_GRID = [
+      [1, 0.02, 0, 0, false],
+      [2, 0.02, 0, 0, false],
+      [3, 0.02, 0, 0, false],
+      [5, 0.02, 0, 0, false],
+      [3, 0.02, 0.05, 0, false],
+      [5, 0.02, 0.1, 0, false],
+      [7, 0.02, 0.1, 0, false],
+      [3, 0.05, 0, 0, false],
+      [5, 0.02, 0, 0.3, false],
+      [5, 0.02, 0.05, 0.3, true],
+      [7, 0.02, 0.1, 0.3, true],
+      [15, 0.02, 0.2, 0.5, true],
+    ];
+
+    async function runAutoSearch() {
+      ui.autoSearchBtn.disabled = true;
+      ui.autoSearchBtn.textContent = '搜索中...';
+      ui.searchResults.classList.add('show');
+      ui.searchList.innerHTML = '';
+      setMeow('config', { fixed: '我来跑 12 组，坐等。' });
+
+      const savedConfig = { ...game.config };
+      const results = [];
+
+      buildDataset();
+      const fixedFish = game.runtime.fish.slice();
+      const fixedFishVal = game.runtime.fishVal.slice();
+
+      for (let i = 0; i < SEARCH_GRID.length; i++) {
+        const [degree, lr, l2, dropout, earlyStop] = SEARCH_GRID[i];
+        ui.searchProgress.textContent = `跑 ${i + 1}/${SEARCH_GRID.length}: d=${degree} η=${lr} L2=${l2} drop=${dropout} ES=${earlyStop ? '✓' : '✗'}`;
+        await new Promise(r => setTimeout(r, 30));
+
+        Object.assign(game.config, savedConfig, {
+          polynomialDegree: degree, learningRate: lr, l2Lambda: l2,
+          dropoutP: dropout, earlyStopping: earlyStop, maxEpoch: 300,
+        });
+
+        game.runtime.weights = new Array(degree + 1).fill(0).map(() => (Math.random() - 0.5) * 0.6);
+        game.runtime.fish = fixedFish;
+        game.runtime.fishVal = fixedFishVal;
+        game.runtime.epoch = 0;
+        game.runtime.lossHistory = [];
+        game.runtime.valLossHistory = [];
+        game.runtime.bestValLoss = Infinity;
+        game.runtime.patienceCounter = 0;
+        game.runtime.earlyStopped = false;
+
+        for (let e = 0; e < 300; e++) {
+          trainStep();
+          if (game.runtime.earlyStopped) break;
+        }
+        results.push({ idx: i, degree, lr, l2, dropout, earlyStop, valLoss: game.runtime.lastValLoss });
+      }
+
+      Object.assign(game.config, savedConfig);
+      syncConfigUI();
+
+      results.sort((a, b) => a.valLoss - b.valLoss);
+      ui.searchProgress.textContent = `✅ 完成 12 组测试。按模拟考损失从低到高：`;
+      ui.searchList.innerHTML = results.map((r, i) => `
+        <div class="search-result-row">
+          <span class="rank">#${i + 1}</span>
+          <span class="desc">d=${r.degree}, η=${r.lr}, L2=${r.l2}, drop=${r.dropout}, ES=${r.earlyStop ? '✓' : '✗'}</span>
+          <span class="val-loss">${r.valLoss.toFixed(3)}</span>
+          <button class="adopt-btn" data-idx="${r.idx}">采用</button>
+        </div>
+      `).join('');
+
+      ui.searchList.querySelectorAll('.adopt-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.dataset.idx);
+          const [degree, lr, l2, dropout, earlyStop] = SEARCH_GRID[idx];
+          Object.assign(game.config, {
+            polynomialDegree: degree, learningRate: lr, l2Lambda: l2,
+            dropoutP: dropout, earlyStopping: earlyStop,
+          });
+          syncConfigUI();
+          setMeow('config', { fixed: '已采用这组。点"出海钓鱼"试试。' });
+          ui.autoSearchBtn.classList.add('shake');
+          setTimeout(() => ui.autoSearchBtn.classList.remove('shake'), 600);
+        });
+      });
+
+      ui.autoSearchBtn.disabled = false;
+      ui.autoSearchBtn.textContent = '🔍 再搜一轮';
+    }
+
+    ui.goFishingBtn.addEventListener('click', startFishing);
+    ui.autoSearchBtn.addEventListener('click', runAutoSearch);
     ui.autoBtn.addEventListener('click', () => {
       if (game.runtime.isRunning) stopAutoTraining();
       else startAutoTraining();
@@ -1907,18 +1752,9 @@
       startAutoTraining();
     });
     ui.reportBtn.addEventListener('click', showReport);
-    ui.backToConfigBtn.addEventListener('click', () => {
-      stopAutoTraining(true);
-      setStage('config');
-    });
-    ui.reportBackBtn.addEventListener('click', () => {
-      setStage('fishing');
-      drawLossChart();
-      updateLiveStats();
-    });
-    ui.reportRestartBtn.addEventListener('click', () => {
-      setStage('config');
-    });
+    ui.backToConfigBtn.addEventListener('click', () => { stopAutoTraining(true); setStage('config'); });
+    ui.reportBackBtn.addEventListener('click', () => { setStage('fishing'); drawLossChart(); updateLiveStats(); });
+    ui.reportRestartBtn.addEventListener('click', () => setStage('config'));
 
     ui.liveLRSlider.addEventListener('input', e => {
       game.config.learningRate = Number(e.target.value);
@@ -1931,23 +1767,18 @@
 
     ui.steps.config.addEventListener('click', () => setStage('config'));
     ui.steps.fishing.addEventListener('click', () => {
-      if (game.runtime.weights.length === 0) {
-        setMeow('config', { fixed: '先配置装备再出海' });
-      } else {
-        setStage('fishing');
-      }
+      if (game.runtime.weights.length === 0) setMeow('config', { fixed: '先配置再出海' });
+      else setStage('fishing');
     });
     ui.steps.report.addEventListener('click', () => {
-      if (game.runtime.weights.length === 0) {
-        setMeow('config', { fixed: '没有战绩可看，先去钓鱼' });
-      } else {
-        showReport();
-      }
+      if (game.runtime.weights.length === 0) setMeow('config', { fixed: '先去钓鱼' });
+      else showReport();
     });
 
-    // ===================================================================
-    // 启动
-    // ===================================================================
+    ui.tabVal.addEventListener('click', () => switchTab('val'));
+    ui.tabTest.addEventListener('click', () => switchTab('test'));
+    ui.revealTestBtn.addEventListener('click', revealTest);
+
     function init() {
       syncConfigUI();
       setStage('config');
