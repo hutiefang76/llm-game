@@ -5,6 +5,10 @@
 
 **🌐 在线试玩 · https://ai.hutiefang.com/**
 
+📖 **配套文档**
+- [`docs/course-notes.md`](docs/course-notes.md) — 第一讲 + 第二讲完整学习笔记
+- [`docs/app-overview.md`](docs/app-overview.md) — 本 App v4 架构与功能总览
+
 ---
 
 ## 这是什么
